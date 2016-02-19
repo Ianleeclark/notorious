@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/GrappigPanda/notorious/server"
+    "github.com/GrappigPanda/notorious/server"
 )
 
 func main() {
-	server.RunServer()
+    server.RunServer()
 }
