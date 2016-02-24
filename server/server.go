@@ -1,12 +1,11 @@
 package server
 
 import (
-    "fmt"
+	"fmt"
+	"github.com/GrappigPanda/notorious/redis"
+	"gopkg.in/redis.v3"
 	"net/http"
 	"strings"
-    "gopkg.in/redis.v3"
-    "github.com/GrappigPanda/notorious/redis"
-    "github.com/GrappigPanda/notorious/bencode"
 )
 
 const (
@@ -47,7 +46,7 @@ func parseTorrentGetRequestURI(s string) map[string]interface{} {
 	return result
 }
 func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
-    // TODO(ian): DRY.
+	// TODO(ian): DRY.
 	_, ok := torrentMap["port"]
 	if !ok {
 		torrentMap["port"] = 0
@@ -67,7 +66,7 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 	_, ok = torrentMap["event"]
 	if !ok {
 		torrentMap["event"] = STOPPED
-    }
+	}
 
 	x := TorrentRequestData{
 		torrentMap["info_hash"].(string),
@@ -83,26 +82,26 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 }
 
 func worker(client *redis.Client, torrdata *TorrentRequestData) interface{} {
-    if redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
-        return redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata)
-    } else {
-        fmt.Println("NOT TEST")
-        redisManager.CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
-        worker(client, torrdata)
-    }
-    return "test"
+	if redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
+		return redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata)
+	} else {
+		fmt.Println("NOT TEST")
+		redisManager.CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
+		worker(client, torrdata)
+	}
+	return "test"
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
-    client := redisManager.OpenClient()
+	client := redisManager.OpenClient()
 
 	torrentdata := parseTorrentGetRequestURI(req.RequestURI)
-    data := fillEmptyMapValues(torrentdata)
+	data := fillEmptyMapValues(torrentdata)
 
-    x := worker(client, torrentdata)
-    // TODO(ian): Return the bencoded value:
-    // A list of dictionaries containing a 23 byte long peer_id, byte string:
-    // ip, int: port
+	worker(client, data)
+	// TODO(ian): Return the bencoded value:
+	// A list of dictionaries containing a 23 byte long peer_id, byte string:
+	// ip, int: port
 }
 
 func RunServer() {
