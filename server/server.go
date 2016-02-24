@@ -83,13 +83,12 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 
 func worker(client *redis.Client, torrdata *TorrentRequestData) interface{} {
 	if redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
-		return redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata)
+		return redisManager.RedisGetKeyVal(client, torrdata.info_hash, torrdata)
 	} else {
-		fmt.Println("NOT TEST")
 		redisManager.CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
 		worker(client, torrdata)
 	}
-	return "test"
+	return "testwor"
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
@@ -98,7 +97,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	torrentdata := parseTorrentGetRequestURI(req.RequestURI)
 	data := fillEmptyMapValues(torrentdata)
 
-	worker(client, data)
+	fmt.Printf("%v", worker(client, data))
 	// TODO(ian): Return the bencoded value:
 	// A list of dictionaries containing a 23 byte long peer_id, byte string:
 	// ip, int: port
