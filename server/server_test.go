@@ -23,7 +23,7 @@ func TestParseTorrentGetRequestURI(t *testing.T) {
 }
 
 func TestFillEmptyMapValues(t *testing.T) {
-	expectedResult := TorrentRequestData{"1", "5", "127.0.0.1", 0, 0, 0, 0, STOPPED}
+	expectedResult := TorrentRequestData{"1", "5", "127.0.0.1", 0, 0, 0, 0, STOPPED, true}
 
 	x := parseTorrentGetRequestURI("/announce?info_hash=1%26peer_id=5%26ip=127.0.0.1")
 

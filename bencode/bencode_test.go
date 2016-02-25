@@ -14,8 +14,9 @@ func TestEncodeInt(t *testing.T) {
 }
 
 func TestEncodeList(t *testing.T) {
-	expectedResult := "lTESTe"
-	result := EncodeList("TEST")
+	expectedResult := "l4:TESTe"
+	a := []string{"TEST"}
+	result := EncodeList(a)
 
 	if result != expectedResult {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
@@ -23,8 +24,8 @@ func TestEncodeList(t *testing.T) {
 }
 
 func TestEncodeDictionary(t *testing.T) {
-	expectedResult := "dTESTe"
-	result := EncodeDictionary("TEST")
+	expectedResult := "d3:key5:valuee"
+	result := EncodeDictionary("key", "value")
 
 	if result != expectedResult {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
