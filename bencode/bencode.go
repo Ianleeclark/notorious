@@ -19,7 +19,12 @@ func EncodeList(x []string) string {
 }
 
 func EncodeDictionary(key string, value string) string {
-	return fmt.Sprintf("d%s%se", key, value)
+	if value[0] == 'l' || value[0] == 'd' {
+		return fmt.Sprintf("d%s%se", EncodeByteString(key), value)
+	}
+	// TODO(ian): Allow for detection of integers
+	// this only supports strings and list/dicts right now
+	return fmt.Sprintf("d%s%se", EncodeByteString(key), EncodeByteString(value))
 }
 
 func EncodeByteString(x string) string {
