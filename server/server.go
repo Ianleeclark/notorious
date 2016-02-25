@@ -1,8 +1,9 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/GrappigPanda/notorious/redis"
+	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
 	"net/http"
 	"strings"
@@ -29,6 +30,7 @@ type TorrentRequestData struct {
 	downloaded int    // base10 ascii amount downloaded so far
 	left       int    // # of bytes left to download (base 10 ascii)
 	event      int
+	compact    bool
 }
 
 var ANNOUNCE_URL = "/announce"
@@ -67,6 +69,10 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 	if !ok {
 		torrentMap["event"] = STOPPED
 	}
+	_, ok = torrentMap["compact"]
+	if !ok {
+		torrentMap["compact"] = true
+	}
 
 	x := TorrentRequestData{
 		torrentMap["info_hash"].(string),
@@ -77,30 +83,44 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["downloaded"].(int),
 		torrentMap["left"].(int),
 		torrentMap["event"].(int),
+		torrentMap["compact"].(bool),
 	}
 	return &x
 }
 
-func worker(client *redis.Client, torrdata *TorrentRequestData) interface{} {
-	if redisManager.RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
-		return redisManager.RedisGetKeyVal(client, torrdata.info_hash, torrdata)
+func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
+	if RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
+		return RedisGetKeyVal(client, torrdata.info_hash, torrdata)
 	} else {
-		redisManager.CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
-		worker(client, torrdata)
+		CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
+		return worker(client, torrdata)
 	}
-	return "testwor"
+}
+
+func formatIpData(ips []string, compact bool) string {
+	encodedList := bencode.EncodeList(ips)
+
+	if compact {
+		return encodedList
+	} else {
+		// TODO(ian): Support non bep-23
+		return encodedList
+	}
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
-	client := redisManager.OpenClient()
+	client := OpenClient()
+	fmt.Printf("%v", req)
 
 	torrentdata := parseTorrentGetRequestURI(req.RequestURI)
-	data := fillEmptyMapValues(torrentdata)
+	fmt.Printf("%v", torrentdata)
+	if torrentdata != nil {
+		data := fillEmptyMapValues(torrentdata)
 
-	fmt.Printf("%v", worker(client, data))
-	// TODO(ian): Return the bencoded value:
-	// A list of dictionaries containing a 23 byte long peer_id, byte string:
-	// ip, int: port
+		ipData := formatIpData(worker(client, data), data.compact)
+
+		w.Write([]byte(ipData))
+	}
 }
 
 func RunServer() {
@@ -108,4 +128,55 @@ func RunServer() {
 
 	mux.HandleFunc("/announce", requestHandler)
 	http.ListenAndServe(":3000", mux)
+}
+
+func OpenClient() *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	return client
+}
+
+func CreateNewTorrentKey(client *redis.Client, key string, value *TorrentRequestData) {
+	// TODO(ian): You might want to set this explicitly in parameters
+	// value := *TorrentRequestData
+
+	// Here the key is the info_hash for the torrent and value is
+	// the newest peer for the torrent
+	client.SAdd(key, "ip")
+	RedisSetKeyVal(client, key, "ip", value.ip)
+}
+
+func RedisSetKeyVal(client *redis.Client, key string, member string, value string) interface{} {
+	keymember := concatenateKeyMember(key, member)
+	client.SAdd(keymember, value)
+	return 1
+}
+
+func RedisGetKeyVal(client *redis.Client, key string, value *TorrentRequestData) []string {
+	keymember := concatenateKeyMember(key, "ip")
+
+	val, err := client.SMembers(keymember).Result()
+	if err != nil {
+		CreateNewTorrentKey(client, key, value)
+	}
+
+	return val
+}
+
+func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
+	_, err := client.Get(key).Result()
+
+	return err != nil
+}
+
+func concatenateKeyMember(key string, member string) string {
+	var buffer bytes.Buffer
+	buffer.WriteString(key)
+	buffer.WriteString(":")
+	buffer.WriteString(member)
+	return buffer.String()
 }
