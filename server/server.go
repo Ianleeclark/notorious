@@ -6,7 +6,7 @@ import (
 	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 const (
@@ -25,7 +25,7 @@ type TorrentRequestData struct {
 	info_hash  string //20 byte sha1 hash
 	peer_id    string //max len 20
 	ip         string //optional
-	port       int    // port number the peer is listening on
+	port       string // port number the peer is listening on
 	uploaded   int    // base10 ascii amount uploaded so far
 	downloaded int    // base10 ascii amount downloaded so far
 	left       int    // # of bytes left to download (base 10 ascii)
@@ -35,20 +35,21 @@ type TorrentRequestData struct {
 
 var ANNOUNCE_URL = "/announce"
 
-func parseTorrentGetRequestURI(s string) map[string]interface{} {
-	tmp := strings.Split(s, "?")
-	tmp = strings.Split(tmp[1], "%26")
-	result := make(map[string]interface{})
-	for i := range tmp {
-		if tmp[i] != ANNOUNCE_URL {
-			data := strings.Split(tmp[i], "=")
-			result[data[0]] = data[1]
-		}
-	}
-	return result
+var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
+
+func parseTorrentGetRequestURI(request string, ip string) map[string]interface{} {
+	torrentdata := make(map[string]interface{})
+	querydata := decodeQueryURL(request)
+
+	torrentdata["info_hash"] = querydata["info_hash"][0]
+	torrentdata["ip"] = ip
+	torrentdata["port"] = querydata["port"][0]
+	torrentdata["peer_id"] = querydata["peer_id"][0]
+
+	return torrentdata
 }
+
 func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
-	// TODO(ian): DRY.
 	_, ok := torrentMap["port"]
 	if !ok {
 		torrentMap["port"] = 0
@@ -78,7 +79,7 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["info_hash"].(string),
 		torrentMap["peer_id"].(string),
 		torrentMap["ip"].(string),
-		torrentMap["port"].(int),
+		torrentMap["port"].(string),
 		torrentMap["uploaded"].(int),
 		torrentMap["downloaded"].(int),
 		torrentMap["left"].(int),
@@ -90,8 +91,11 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 
 func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 	if RedisGetBoolKeyVal(client, torrdata.info_hash, torrdata) {
-		return RedisGetKeyVal(client, torrdata.info_hash, torrdata)
+		x := RedisGetKeyVal(client, torrdata.info_hash, torrdata)
+		return x
 	} else {
+
+		fmt.Println("Test")
 		CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
 		return worker(client, torrdata)
 	}
@@ -108,11 +112,21 @@ func formatIpData(ips []string, compact bool) string {
 	}
 }
 
+func decodeQueryURL(s string) url.Values {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(err)
+	}
+
+	m, _ := url.ParseQuery(u.RawQuery)
+	return m
+}
+
 func requestHandler(w http.ResponseWriter, req *http.Request) {
 	client := OpenClient()
 	fmt.Printf("%v", req)
 
-	torrentdata := parseTorrentGetRequestURI(req.RequestURI)
+	torrentdata := parseTorrentGetRequestURI(req.RequestURI, req.RemoteAddr)
 	fmt.Printf("%v", torrentdata)
 	if torrentdata != nil {
 		data := fillEmptyMapValues(torrentdata)
@@ -157,7 +171,9 @@ func RedisSetKeyVal(client *redis.Client, key string, member string, value strin
 }
 
 func RedisGetKeyVal(client *redis.Client, key string, value *TorrentRequestData) []string {
+	fmt.Println("\n\n\n")
 	keymember := concatenateKeyMember(key, "ip")
+	fmt.Println(keymember)
 
 	val, err := client.SMembers(keymember).Result()
 	if err != nil {
