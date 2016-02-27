@@ -41,7 +41,8 @@ func parseTorrentGetRequestURI(request string, ip string) map[string]interface{}
 	torrentdata := make(map[string]interface{})
 	querydata := decodeQueryURL(request)
 
-	torrentdata["info_hash"] = querydata["info_hash"][0]
+	torrentdata["info_hash"] = ParseInfoHash(querydata["info_hash"][0])
+	fmt.Println(torrentdata["info_hash"])
 	torrentdata["ip"] = ip
 	torrentdata["port"] = querydata["port"][0]
 	torrentdata["peer_id"] = querydata["peer_id"][0]
@@ -49,27 +50,36 @@ func parseTorrentGetRequestURI(request string, ip string) map[string]interface{}
 	return torrentdata
 }
 
+func ParseInfoHash(s string) string {
+	return fmt.Sprintf("%x", s)
+}
+
 func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 	_, ok := torrentMap["port"]
 	if !ok {
 		torrentMap["port"] = 0
 	}
+
 	_, ok = torrentMap["uploaded"]
 	if !ok {
 		torrentMap["uploaded"] = 0
 	}
+
 	_, ok = torrentMap["downloaded"]
 	if !ok {
 		torrentMap["downloaded"] = 0
 	}
+
 	_, ok = torrentMap["left"]
 	if !ok {
 		torrentMap["left"] = 0
 	}
+
 	_, ok = torrentMap["event"]
 	if !ok {
 		torrentMap["event"] = STOPPED
 	}
+
 	_, ok = torrentMap["compact"]
 	if !ok {
 		torrentMap["compact"] = true
@@ -94,8 +104,6 @@ func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 		x := RedisGetKeyVal(client, torrdata.info_hash, torrdata)
 		return x
 	} else {
-
-		fmt.Println("Test")
 		CreateNewTorrentKey(client, torrdata.info_hash, torrdata)
 		return worker(client, torrdata)
 	}
@@ -124,14 +132,13 @@ func decodeQueryURL(s string) url.Values {
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
 	client := OpenClient()
-	fmt.Printf("%v", req)
 
 	torrentdata := parseTorrentGetRequestURI(req.RequestURI, req.RemoteAddr)
-	fmt.Printf("%v", torrentdata)
 	if torrentdata != nil {
 		data := fillEmptyMapValues(torrentdata)
 
 		ipData := formatIpData(worker(client, data), data.compact)
+		fmt.Println(ipData)
 
 		w.Write([]byte(ipData))
 	}
@@ -171,12 +178,14 @@ func RedisSetKeyVal(client *redis.Client, key string, member string, value strin
 }
 
 func RedisGetKeyVal(client *redis.Client, key string, value *TorrentRequestData) []string {
-	fmt.Println("\n\n\n")
 	keymember := concatenateKeyMember(key, "ip")
 	fmt.Println(keymember)
 
 	val, err := client.SMembers(keymember).Result()
 	if err != nil {
+		panic("Invalid lookup")
+	}
+	if len(val) == 0 {
 		CreateNewTorrentKey(client, key, value)
 	}
 

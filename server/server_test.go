@@ -42,3 +42,12 @@ func TestParseTorrentGetRequest(t *testing.T) {
 		t.Fatalf("Expected 0, got %s", result["compact"])
 	}
 }
+
+func TestParseInfoHash(t *testing.T) {
+	expectedResult := "49b50f182cc4189c891c9e5973c8f4677bb35917"
+	result := ParseInfoHash("I%b5%0f%18%2c%c4%18%9c%89%1c%9eYs%c8%f4g%7b%b3Y%17")
+
+	if result != expectedResult {
+		t.Fatalf("Expected %s, got %s", expectedResult, result)
+	}
+}
