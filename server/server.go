@@ -137,8 +137,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	if torrentdata != nil {
 		data := fillEmptyMapValues(torrentdata)
 
-		ipData := formatIpData(worker(client, data), data.compact)
-		fmt.Println(ipData)
+		worker(client, data)
+		ipData := bencode.EncodeResponse()
 
 		w.Write([]byte(ipData))
 	}
