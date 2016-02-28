@@ -37,26 +37,3 @@ func EncodePeerList(x []string, interval int) string {
 	peers := EncodeDictionary("peers", peerList)
 	return peers
 }
-
-func encodeKV(key string, value string) string {
-	return fmt.Sprintf("%s%s", EncodeByteString(key), EncodeByteString(value))
-}
-
-func EncodeResponse() string {
-	ret := "d"
-
-	ret += encodeKV("interval", "3") // Interval
-	ret += encodeKV("tracker_id", "1234")
-	ret += encodeKV("complete", "1")
-	ret += encodeKV("incomplete", "1")
-	ret += "5:peersd"
-	ret += encodeKV("peer_id", "1")
-	ret += encodeKV("ip", "127.0.0.1")
-	ret += encodeKV("port", "45788")
-	ret += "e"
-
-	ret += "e"
-	fmt.Println(ret)
-
-	return ret
-}
