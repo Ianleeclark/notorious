@@ -7,6 +7,7 @@ import (
 	"gopkg.in/redis.v3"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -30,8 +31,9 @@ type TorrentRequestData struct {
 	uploaded   int    // base10 ascii amount uploaded so far
 	downloaded int    // base10 ascii amount downloaded so far
 	left       int    // # of bytes left to download (base 10 ascii)
-	event      int
-	compact    bool
+	event      int    // TorrentEvent
+	numwant    int    // Number of peers requested by client.
+	compact    bool   // Bep23 peer list compression decision: True -> compress bep23
 }
 
 var ANNOUNCE_URL = "/announce"
@@ -42,12 +44,64 @@ func parseTorrentGetRequestURI(request string, ip string) map[string]interface{}
 	torrentdata := make(map[string]interface{})
 	querydata := decodeQueryURL(request)
 
-	torrentdata["info_hash"] = ParseInfoHash(querydata["info_hash"][0])
-	torrentdata["ip"] = strings.Split(ip, ":")[0]
-	fmt.Println(torrentdata["ip"])
-	torrentdata["port"] = querydata["port"][0]
-	torrentdata["peer_id"] = querydata["peer_id"][0]
+	lookupvalues := []string{
+		"info_hash",
+		"peer_id",
+		// ip intentially left out
+		"port",
+		"uploaded",
+		"downloaded",
+		"left",
+		"event",
+		"numwant",
+		"compact",
+	}
 
+	lookupints := []string{
+		"uploaded",
+		"downloaded",
+		"left",
+		"event",
+		"numwant",
+	}
+
+	for i := range lookupvalues {
+		index := lookupvalues[i]
+
+		// TODO(ian): Delegate responsibility to another function.
+		x := querydata[index]
+		if len(x) <= 0 {
+			continue
+		}
+
+		if index == "info_hash" {
+			torrentdata[index] = ParseInfoHash(x[0])
+		} else if index == "compact" {
+			if querydata[index][0] == "1" {
+				torrentdata[index] = true
+			} else {
+				torrentdata[index] = false
+			}
+		} else {
+			torrentdata[index] = querydata[index][0]
+		}
+
+		// TODO(ian): Delegate responsibility here, as well.
+		for j := range lookupints {
+			if lookupints[j] == index {
+				val, _ := strconv.Atoi(index)
+				torrentdata[index] = val
+			}
+		}
+	}
+
+	// TODO(ian): Add a generic size lookup function and assert > 0
+	x := strings.Split(ip, ":")
+	if len(x) > 0 {
+		torrentdata["ip"] = x[0]
+	}
+
+	fmt.Println(torrentdata)
 	return torrentdata
 }
 
@@ -56,12 +110,7 @@ func ParseInfoHash(s string) string {
 }
 
 func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
-	_, ok := torrentMap["port"]
-	if !ok {
-		torrentMap["port"] = 0
-	}
-
-	_, ok = torrentMap["uploaded"]
+	_, ok := torrentMap["uploaded"]
 	if !ok {
 		torrentMap["uploaded"] = 0
 	}
@@ -86,6 +135,11 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["compact"] = true
 	}
 
+	_, ok = torrentMap["numwant"]
+	if !ok {
+		torrentMap["numwant"] = 30
+	}
+
 	x := TorrentRequestData{
 		torrentMap["info_hash"].(string),
 		torrentMap["peer_id"].(string),
@@ -95,6 +149,7 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["downloaded"].(int),
 		torrentMap["left"].(int),
 		torrentMap["event"].(int),
+		torrentMap["numwant"].(int),
 		torrentMap["compact"].(bool),
 	}
 	return &x
