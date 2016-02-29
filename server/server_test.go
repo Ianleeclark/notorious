@@ -44,7 +44,7 @@ func TestParseTorrentGetRequest(t *testing.T) {
 }
 
 func TestParseInfoHash(t *testing.T) {
-	expectedResult := "49b50f182cc4189c891c9e5973c8f4677bb35917"
+	expectedResult := "4925623525306625313825326325633425313825396325383925316325396559732563382566346725376225623359253137"
 	result := ParseInfoHash("I%b5%0f%18%2c%c4%18%9c%89%1c%9eYs%c8%f4g%7b%b3Y%17")
 
 	if result != expectedResult {
