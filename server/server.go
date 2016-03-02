@@ -153,6 +153,7 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["numwant"].(int),
 		torrentMap["compact"].(bool),
 	}
+
 	return &x
 }
 
