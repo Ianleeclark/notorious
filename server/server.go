@@ -209,7 +209,7 @@ func formatResponseData(ips []string, compact bool) string {
 		return encodedList
 	} else {
 		// TODO(ian): Support bep-23
-		return EncodeResponse(ipport)
+		return EncodeResponse(ips)
 	}
 }
 
@@ -227,25 +227,27 @@ func encodeKV(key string, value string) string {
 	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
 }
 
-func EncodeResponse(ipport []string) string {
+func EncodeResponse(ipport []string, compact bool) string {
 	ret := "d"
 
-	ret += encodeKV("interval", "30") // Interval
-	ret += encodeKV("tracker_id", "1234")
+	ret += encodeKV("interval", "30")
 	ret += encodeKV("complete", "1")
-	ret += encodeKV("incomplete", "111111111111111111111")
+	ret += encodeKV("incomplete", "1")
 	ret += "5:peersd"
 
-	for i := range ipport {
-		data := strings.Split(ipport[i], ":")
-
-		ret += encodeKV("peer_id", "1")
-		ret += encodeKV("ip", data[0])
-		ret += encodeKV("port", data[1])
+	if compact {
+		ret += ipport
+	} else {
+		for i := range ipport {
+			data := strings.Split(ipport[i], ":")
+	
+			ret += encodeKV("peer_id", "1")
+			ret += encodeKV("ip", data[0])
+			ret += encodeKV("port", data[1])
+		}
+		
+		ret += "e"
 	}
-
-	ret += "e"
-
 	ret += "e"
 
 	return ret
