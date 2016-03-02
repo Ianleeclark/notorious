@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
+	"net"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -101,13 +104,41 @@ func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 	}
 }
 
+func compactifyIpPort(ip string) string {
+	sz := strings.Split(ip, ":")
+	newip := net.IPMask(net.ParseIP(sz[0])).String()
+	x, err := strconv.Atoi(sz[1])
+	if err != nil {
+		panic("Invalid IP!")
+	}
+	port := fmt.Sprintf("%x", x)
+
+	// TODO(ian): Sometime in the future, support ivp6
+	newip = newip[len(newip)-8 : len(newip)]
+	port = port[len(port)-4 : len(port)]
+
+	ret := ""
+
+	for i := 0; i < 8; i += 2 {
+		ret += fmt.Sprintf("\\%s", newip[i:i+2])
+	}
+
+	for i := 0; i < 4; i += 2 {
+		ret += fmt.Sprintf("\\%s", port[i:i+2])
+	}
+
+	return ret
+}
+
 func formatIpData(ips []string, compact bool) string {
+	for i := 0; i <= len(ips); i++ {
+		ips[i] = compactifyIpPort(ips[i])
+	}
 	encodedList := bencode.EncodeList(ips)
 
 	if compact {
 		return encodedList
 	} else {
-		// TODO(ian): Support non bep-23
 		return encodedList
 	}
 }
