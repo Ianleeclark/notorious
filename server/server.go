@@ -199,17 +199,17 @@ func compactifyIpPort(ip string) string {
 	return ret
 }
 
-func formatResponseData(ips []string, compact bool) string {
+func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
 	for i := 0; i <= len(ips); i++ {
 		ips[i] = compactifyIpPort(ips[i])
 	}
 	encodedList := bencode.EncodeList(ips)
 
-	if compact {
+	if torrentdata.compact {
 		return encodedList
 	} else {
 		// TODO(ian): Support bep-23
-		return EncodeResponse(ips)
+		return EncodeResponse(ips, torrentdata)
 	}
 }
 
@@ -227,7 +227,7 @@ func encodeKV(key string, value string) string {
 	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
 }
 
-func EncodeResponse(ipport []string, compact bool) string {
+func EncodeResponse(ipport []string, torrentdata *TorrentRequestData) string {
 	ret := "d"
 
 	ret += encodeKV("interval", "30")
@@ -235,17 +235,19 @@ func EncodeResponse(ipport []string, compact bool) string {
 	ret += encodeKV("incomplete", "1")
 	ret += "5:peersd"
 
-	if compact {
-		ret += ipport
+	if torrentdata.compact {
+		for i := range ipport {
+			ret += ipport[i]
+		}
 	} else {
 		for i := range ipport {
 			data := strings.Split(ipport[i], ":")
-	
+
 			ret += encodeKV("peer_id", "1")
 			ret += encodeKV("ip", data[0])
 			ret += encodeKV("port", data[1])
 		}
-		
+
 		ret += "e"
 	}
 	ret += "e"
