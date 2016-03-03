@@ -24,7 +24,9 @@ type TorrentEvent struct {
 	stopped   int
 }
 
-type Redis *redis.Client
+type Redis struct {
+	*redis.Client
+}
 
 type TorrentRequestData struct {
 	info_hash  string //20 byte sha1 hash
