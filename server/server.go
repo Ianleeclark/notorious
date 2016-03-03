@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -152,6 +153,7 @@ func fillEmptyMapValues(torrentMap map[string]interface{}) *TorrentRequestData {
 		torrentMap["numwant"].(int),
 		torrentMap["compact"].(bool),
 	}
+
 	return &x
 }
 
@@ -171,12 +173,41 @@ func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 	}
 }
 
-func formatResponseData(ipport []string, torrentdata *TorrentRequestData) string {
+func compactifyIpPort(ip string) string {
+	sz := strings.Split(ip, ":")
+	newip := net.IPMask(net.ParseIP(sz[0])).String()
+	x, err := strconv.Atoi(sz[1])
+	if err != nil {
+		panic("Invalid IP!")
+	}
+	port := fmt.Sprintf("%x", x)
+
+	// TODO(ian): Sometime in the future, support ivp6
+	newip = newip[len(newip)-8 : len(newip)]
+	port = port[len(port)-4 : len(port)]
+
+	ret := ""
+
+	for i := 0; i < 8; i += 2 {
+		ret += fmt.Sprintf("\\x%s", newip[i:i+2])
+	}
+
+	for i := 0; i < 4; i += 2 {
+		ret += fmt.Sprintf("\\x%s", port[i:i+2])
+	}
+
+	return ret
+}
+
+func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
 	if torrentdata.compact {
-		return EncodeResponse(ipport)
-	} else {
+		for i := range ips {
+			ips[i] = compactifyIpPort(ips[i])
+		}
 		// TODO(ian): Support bep-23
-		return EncodeResponse(ipport)
+		return EncodeResponse(ips, torrentdata)
+	} else {
+		return EncodeResponse(ips, torrentdata)
 	}
 }
 
@@ -194,25 +225,33 @@ func encodeKV(key string, value string) string {
 	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
 }
 
-func EncodeResponse(ipport []string) string {
+func EncodeResponse(ipport []string, torrentdata *TorrentRequestData) string {
 	ret := "d"
 
-	ret += encodeKV("interval", "30") // Interval
-	ret += encodeKV("tracker_id", "1234")
+	ret += encodeKV("interval", "30")
 	ret += encodeKV("complete", "1")
-	ret += encodeKV("incomplete", "111111111111111111111")
-	ret += "5:peersd"
 
-	for i := range ipport {
-		data := strings.Split(ipport[i], ":")
+	if torrentdata.compact {
+		ipstr := ""
+		count := 0
+		for i := range ipport {
+			ipstr += fmt.Sprintf("%s", ipport[i])
+			count += 1
+		}
+		ret += encodeKV("incomplete", fmt.Sprintf("%d", count))
+		ret += "5:peers"
+		ret += fmt.Sprintf("%s", ipstr)
+	} else {
+		for i := range ipport {
+			data := strings.Split(ipport[i], ":")
 
-		ret += encodeKV("peer_id", "1")
-		ret += encodeKV("ip", data[0])
-		ret += encodeKV("port", data[1])
+			ret += encodeKV("peer_id", "1")
+			ret += encodeKV("ip", data[0])
+			ret += encodeKV("port", data[1])
+		}
+
+		ret += "e"
 	}
-
-	ret += "e"
-
 	ret += "e"
 
 	return ret
@@ -227,6 +266,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 		worker(client, data)
 		x := RedisGetKeyVal(client, data.info_hash, data)
+		fmt.Println(x)
 
 		response := formatResponseData(x, data)
 		fmt.Println(response)
@@ -265,7 +305,6 @@ func CreateNewTorrentKey(client *redis.Client, key string, value *TorrentRequest
 func createIpPortPair(value *TorrentRequestData) string {
 	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
 	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
-	fmt.Println(value.ip, value.port)
 	return fmt.Sprintf("%s:%s", value.ip, value.port)
 }
 
