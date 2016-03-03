@@ -265,11 +265,9 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		data := fillEmptyMapValues(torrentdata)
 
 		worker(client, data)
-		x := RedisGetKeyVal(client, data.info_hash, data)
-		fmt.Println(x)
+		x := client.RedisGetKeyVal(data.info_hash, data)
 
 		response := formatResponseData(x, data)
-		fmt.Println(response)
 
 		w.Write([]byte(response))
 	}
@@ -292,7 +290,13 @@ func OpenClient() *redis.Client {
 	return client
 }
 
-func CreateNewTorrentKey(client *redis.Client, key string, value *TorrentRequestData) {
+func createIpPortPair(value *TorrentRequestData) string {
+	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
+	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
+	return fmt.Sprintf("%s:%s", value.ip, value.port)
+}
+
+func (client *redis.Client) CreateNewTorrentKey(key string, value *TorrentRequestData) {
 	// CreateNewTorrentKey creates a new key. By default, it adds a member
 	// ":ip". I don't think this ought to ever be generalized, as I just want
 	// Redis to function in one specific way in notorious.
@@ -302,19 +306,13 @@ func CreateNewTorrentKey(client *redis.Client, key string, value *TorrentRequest
 	client.SAdd(key, "ip")
 }
 
-func createIpPortPair(value *TorrentRequestData) string {
-	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
-	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
-	return fmt.Sprintf("%s:%s", value.ip, value.port)
-}
-
-func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
+func (client *redis.Client) RedisSetKeyVal(keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
 	client.SAdd(keymember, value)
 }
 
-func RedisGetKeyVal(client *redis.Client, key string, value *TorrentRequestData) []string {
+func (client *redis.Client) RedisGetKeyVal(key string, value *TorrentRequestData) []string {
 	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
@@ -324,18 +322,18 @@ func RedisGetKeyVal(client *redis.Client, key string, value *TorrentRequestData)
 	val, err := client.SMembers(keymember).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(client, keymember, value)
+		client.CreateNewTorrentKey(keymember, value)
 	}
 
 	// If no keys yet exist in the KV storage.
 	if len(val) == 0 {
-		RedisSetKeyVal(client, keymember, createIpPortPair(value))
+		client.RedisSetKeyVal(keymember, createIpPortPair(value))
 	}
 
 	return val
 }
 
-func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
+func (client *redis.Client) RedisGetBoolKeyVal(key string, value interface{}) bool {
 	_, err := client.Get(key).Result()
 
 	return err != nil
