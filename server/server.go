@@ -24,6 +24,8 @@ type TorrentEvent struct {
 	stopped   int
 }
 
+type Redis *redis.Client
+
 type TorrentRequestData struct {
 	info_hash  string //20 byte sha1 hash
 	peer_id    string //max len 20
@@ -296,7 +298,7 @@ func createIpPortPair(value *TorrentRequestData) string {
 	return fmt.Sprintf("%s:%s", value.ip, value.port)
 }
 
-func (client *redis.Client) CreateNewTorrentKey(key string, value *TorrentRequestData) {
+func (client Redis) CreateNewTorrentKey(key string, value *TorrentRequestData) {
 	// CreateNewTorrentKey creates a new key. By default, it adds a member
 	// ":ip". I don't think this ought to ever be generalized, as I just want
 	// Redis to function in one specific way in notorious.
@@ -306,13 +308,13 @@ func (client *redis.Client) CreateNewTorrentKey(key string, value *TorrentReques
 	client.SAdd(key, "ip")
 }
 
-func (client *redis.Client) RedisSetKeyVal(keymember string, value string) {
+func (client Redis) RedisSetKeyVal(keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
 	client.SAdd(keymember, value)
 }
 
-func (client *redis.Client) RedisGetKeyVal(key string, value *TorrentRequestData) []string {
+func (client Redis) RedisGetKeyVal(key string, value *TorrentRequestData) []string {
 	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
@@ -333,7 +335,7 @@ func (client *redis.Client) RedisGetKeyVal(key string, value *TorrentRequestData
 	return val
 }
 
-func (client *redis.Client) RedisGetBoolKeyVal(key string, value interface{}) bool {
+func (client Redis) RedisGetBoolKeyVal(key string, value interface{}) bool {
 	_, err := client.Get(key).Result()
 
 	return err != nil
