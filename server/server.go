@@ -226,35 +226,35 @@ func encodeKV(key string, value string) string {
 }
 
 func EncodeResponse(ipport []string, torrentdata *TorrentRequestData) string {
-	ret := "d"
-
+	ret := ""
 	ret += encodeKV("interval", "30")
 	ret += encodeKV("complete", "1")
-
+	ipstr := ""
+	
 	if torrentdata.compact {
-		ipstr := ""
 		count := 0
+		
 		for i := range ipport {
 			ipstr += fmt.Sprintf("%s", ipport[i])
 			count += 1
 		}
+		
 		ret += encodeKV("incomplete", fmt.Sprintf("%d", count))
-		ret += "5:peers"
-		ret += fmt.Sprintf("%s", ipstr)
+		ret += bencode.EncodeDictionary("peers", ipstr)
 	} else {
+
 		for i := range ipport {
 			data := strings.Split(ipport[i], ":")
 
-			ret += encodeKV("peer_id", "1")
-			ret += encodeKV("ip", data[0])
-			ret += encodeKV("port", data[1])
+			ipstr += encodeKV("peer_id", "1")
+			ipstr += encodeKV("ip", data[0])
+			ipstr += encodeKV("port", data[1])
 		}
 
-		ret += "e"
+		ret += bencode.EncodeDictionary("peers", ipstr)
 	}
-	ret += "e"
 
-	return ret
+	return bencode.EncodeDictionary("", ret)
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
