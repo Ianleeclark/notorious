@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"binary"
+	"encoding/binary"
 	"strings"
 )
 
