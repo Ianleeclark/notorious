@@ -209,7 +209,7 @@ func CompactAllPeers(ipport []string) []byte {
 
 func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
 	if torrentdata.compact {
-		ips := compactAllPeers(ips)
+		ips := CompactAllPeers(ips)
 		return EncodeResponse(ips, torrentdata)
 	} else {
 		return EncodeResponse(ips, torrentdata)
