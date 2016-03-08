@@ -172,31 +172,38 @@ func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 		return worker(client, torrdata)
 	}
 }
+func compactIPPort(ip string, port string) []byte {
+    res := bytes.NewBuffer(make([]byte, 0))
 
-func compactifyIpPort(ip string) string {
-	sz := strings.Split(ip, ":")
-	newip := net.IPMask(net.ParseIP(sz[0])).String()
-	x, err := strconv.Atoi(sz[1])
-	if err != nil {
-		panic("Invalid IP!")
-	}
-	port := fmt.Sprintf("%x", x)
+    intPort, err := strconv.Atoi(port)
+    if err != nil {
+        panic("failure1")
+    }
 
-	// TODO(ian): Sometime in the future, support ivp6
-	newip = newip[len(newip)-8 : len(newip)]
-	port = port[len(port)-4 : len(port)]
 
-	ret := ""
+    if err := binary.Write(res, binary.BigEndian, binary.BigEndian.Uint32(net.ParseIP(ip).To4())); err != nil {
+        panic("failure0")
+    }
 
-	for i := 0; i < 8; i += 2 {
-		ret += fmt.Sprintf("\\x%s", newip[i:i+2])
-	}
+    err = binary.Write(res, binary.BigEndian, uint16(intPort)); 
+        if err != nil {
+        panic("failure2")
+    }
 
-	for i := 0; i < 4; i += 2 {
-		ret += fmt.Sprintf("\\x%s", port[i:i+2])
-	}
+    return res.Bytes()
+}
 
-	return ret
+func CompactAllPeers(ipport []string) []byte {
+    ret := bytes.NewBuffer(make([]byte, 0))
+    for i := range ipport {
+        sz := strings.Split(ipport[i], ":")
+        ip := sz[0]
+        port := sz[1]
+
+        ret += compactIPPort(ip, port)
+    }
+
+    return ret.Bytes()
 }
 
 func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
