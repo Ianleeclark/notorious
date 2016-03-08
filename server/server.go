@@ -207,12 +207,8 @@ func CompactAllPeers(ipport []string) []byte {
 }
 
 func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
-	for i := range ips {
-		ips[i] = compactifyIpPort(ips[i])
-	}
-
 	if torrentdata.compact {
-		// TODO(ian): Support bep-23
+		ips = compactaAllPeers(ips[i])
 		return EncodeResponse(ips, torrentdata)
 	} else {
 		return EncodeResponse(ips, torrentdata)
