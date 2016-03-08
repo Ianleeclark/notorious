@@ -201,7 +201,7 @@ func CompactAllPeers(ipport []string) []byte {
         ip := sz[0]
         port := sz[1]
 
-        ret += compactIPPort(ip, port)
+        ret.Write(compactIPPort(ip, port))
     }
 
     return ret.Bytes()
@@ -209,7 +209,7 @@ func CompactAllPeers(ipport []string) []byte {
 
 func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
 	if torrentdata.compact {
-		ips = compactaAllPeers(ips)
+		ips := compactAllPeers(ips)
 		return EncodeResponse(ips, torrentdata)
 	} else {
 		return EncodeResponse(ips, torrentdata)
