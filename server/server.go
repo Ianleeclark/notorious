@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
@@ -9,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"encoding/binary"
 	"strings"
 )
 
@@ -174,46 +174,41 @@ func worker(client *redis.Client, torrdata *TorrentRequestData) []string {
 	}
 }
 func compactIPPort(ip string, port string) []byte {
-    res := bytes.NewBuffer(make([]byte, 0))
+	res := bytes.NewBuffer(make([]byte, 0))
 
-    intPort, err := strconv.Atoi(port)
-    if err != nil {
-        panic("failure1")
-    }
+	intPort, err := strconv.Atoi(port)
+	if err != nil {
+		panic("failure1")
+	}
 
+	if err := binary.Write(res, binary.BigEndian, binary.BigEndian.Uint32(net.ParseIP(ip).To4())); err != nil {
+		panic("failure0")
+	}
 
-    if err := binary.Write(res, binary.BigEndian, binary.BigEndian.Uint32(net.ParseIP(ip).To4())); err != nil {
-        panic("failure0")
-    }
+	err = binary.Write(res, binary.BigEndian, uint16(intPort))
+	if err != nil {
+		panic("failure2")
+	}
 
-    err = binary.Write(res, binary.BigEndian, uint16(intPort)); 
-        if err != nil {
-        panic("failure2")
-    }
-
-    return res.Bytes()
+	return res.Bytes()
 }
 
 func CompactAllPeers(ipport []string) []byte {
-    ret := bytes.NewBuffer(make([]byte, 0))
-    for i := range ipport {
-        sz := strings.Split(ipport[i], ":")
-        ip := sz[0]
-        port := sz[1]
+	ret := bytes.NewBuffer(make([]byte, 0))
+	for i := range ipport {
+		sz := strings.Split(ipport[i], ":")
+		ip := sz[0]
+		port := sz[1]
 
-        ret.Write(compactIPPort(ip, port))
-    }
+		ret.Write(compactIPPort(ip, port))
+	}
 
-    return ret.Bytes()
+	return ret.Bytes()
 }
 
 func formatResponseData(ips []string, torrentdata *TorrentRequestData) string {
-	if torrentdata.compact {
-		ips := CompactAllPeers(ips)
-		return EncodeResponse(ips, torrentdata)
-	} else {
-		return EncodeResponse(ips, torrentdata)
-	}
+	compactPeerList := CompactAllPeers(ips)
+	return EncodeResponse(compactPeerList, torrentdata)
 }
 
 func decodeQueryURL(s string) url.Values {
@@ -230,36 +225,23 @@ func encodeKV(key string, value string) string {
 	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
 }
 
-func EncodeResponse(ipport []string, torrentdata *TorrentRequestData) string {
-	ret := ""
-	ret += encodeKV("interval", "30")
+func EncodeResponse(ipport []byte, torrentdata *TorrentRequestData) string {
+	ret := "d"
 	ret += encodeKV("complete", "1")
 	ipstr := ""
-	
-	if torrentdata.compact {
-		count := 0
-		
-		for i := range ipport {
-			ipstr += fmt.Sprintf("%s", ipport[i])
-			count += 1
-		}
-		
-		ret += encodeKV("incomplete", fmt.Sprintf("%d", count))
-		ret += bencode.EncodeDictionary("peers", ipstr)
-	} else {
 
-		for i := range ipport {
-			data := strings.Split(ipport[i], ":")
+	count := 0
 
-			ipstr += encodeKV("peer_id", "1")
-			ipstr += encodeKV("ip", data[0])
-			ipstr += encodeKV("port", data[1])
-		}
-
-		ret += bencode.EncodeDictionary("peers", ipstr)
+	for i := range ipport {
+		ipstr += fmt.Sprintf("%s", ipport[i])
+		count += 1
 	}
 
-	return bencode.EncodeDictionary("", ret)
+	ret += encodeKV("incomplete", fmt.Sprintf("%d", count))
+	ret += "5:peers"
+	ret += bencode.EncodeByteString(ipstr)
+	ret += "e"
+	return ret
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
