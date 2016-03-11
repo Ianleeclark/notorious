@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/GrappigPanda/notorious.svg?branch=devel)](https://travis-ci.org/GrappigPanda/notorious)
+[![Build Status](https://travis-ci.org/GrappigPanda/notorious.svg?branch=devel)](https://travis-ci.org/GrappigPanda/notorious) [![Go Report Card](https://goreportcard.com/badge/github.com/GrappigPanda/notorious)](https://goreportcard.com/report/github.com/GrappigPanda/notorious)
 # Notorious
 A torrent tracker implemented in Go.
 
