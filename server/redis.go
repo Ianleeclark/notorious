@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"gopkg.in/redis.v3"
 )
 
@@ -38,6 +39,16 @@ func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) boo
 	return err != nil
 }
 
+func CreateNewTorrentKey(client *redis.Client, key string) {
+	// CreateNewTorrentKey creates a new key. By default, it adds a member
+	// ":ip". I don't think this ought to ever be generalized, as I just want
+	// Redis to function in one specific way in notorious.
+
+	// TODO(ian): You might want to set this explicitly in parameters
+	// value := *TorrentRequestData
+	client.SAdd(key, "ip")
+}
+
 func concatenateKeyMember(key string, member string) string {
 	var buffer bytes.Buffer
 
@@ -46,4 +57,10 @@ func concatenateKeyMember(key string, member string) string {
 	buffer.WriteString(member)
 
 	return buffer.String()
+}
+
+func createIpPortPair(value *announceData) string {
+	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
+	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
+	return fmt.Sprintf("%s:%s", value.ip, value.port)
 }
