@@ -21,7 +21,6 @@ type AnnounceResponse struct {
 	trackerId  string
 	complete   uint
 	incomplete uint
-	peers      PeerList
 }
 
 func compactIPPort(ip string, port string) []byte {
@@ -62,30 +61,23 @@ func formatResponseData(c *redis.Client, ips []string, data *announceData) strin
 	return EncodeResponse(c, compactPeerList, data)
 }
 
-func encodeKV(key string, value string) string {
-	if value[0] == 'i' {
-		return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), value)
-	}
-	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
-}
-
 func EncodeResponse(c *redis.Client, ipport []byte, data *announceData) (resp string) {
 	ret := ""
 	completeCount := len(RedisGetKeyVal(c, data.info_hash, data))
 	incompleteCount := len(RedisGetKeyVal(c, data.info_hash, data))
-	ret += encodeKV("complete", bencode.EncodeInt(completeCount))
+	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ipstr := string(ipport)
 
-	ret += encodeKV("incomplete", bencode.EncodeInt(incompleteCount))
+	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
 	if data.compact {
-		ret += encodeKV("peers", ipstr)
+		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
 		// TODO(ian): Add an option if compact = 0
 		return ""
 	}
 
-	resp = bencode.EncodeDictionary(ret, "")
+	resp = fmt.Sprintf("d%se", ret)
 
 	return
 }

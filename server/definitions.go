@@ -1,10 +1,5 @@
 package server
 
-import (
-	"net"
-	"time"
-)
-
 const (
 	STARTED = iota
 	COMPLETED
@@ -42,16 +37,6 @@ type announceData struct {
 	numwant    uint64 // Number of peers requested by client.
 	compact    bool   // Bep23 peer list compression decision: True -> compress bep23
 }
-
-type Peer struct {
-	remoteAddr  *net.TCPAddr // Remote connection address
-	downloaded  uint64       // Total bytes downloaded
-	uploaded    uint64       // Total bytes uploaded
-	left        uint64       // Bytes left for torrent
-	lastTracked time.Time    // Last known appearance in the tracker
-}
-
-type PeerList map[string]*Peer
 
 type TorrentResponseData struct {
 	interval     int
