@@ -20,11 +20,11 @@ func EncodeList(x []string) string {
 
 func EncodeDictionary(key string, value string) string {
 	if value[0] == 'l' || value[0] == 'd' {
-		return fmt.Sprintf("d%s%se", EncodeByteString(key), value)
+		return fmt.Sprintf("d%s%se", key, value)
 	}
 	// TODO(ian): Allow for detection of integers
 	// this only supports strings and list/dicts right now
-	return fmt.Sprintf("d%s%se", EncodeByteString(key), EncodeByteString(value))
+	return fmt.Sprintf("d%s%se", key, value)
 }
 
 func EncodeByteString(x string) string {
@@ -33,7 +33,6 @@ func EncodeByteString(x string) string {
 
 func EncodePeerList(x []string, interval int) string {
 	peerList := EncodeList(x)
-	// intDictionary := EncodeDictionary("interval", EncodeInt(interval))
 	peers := EncodeDictionary("peers", peerList)
 	return peers
 }

@@ -34,7 +34,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	x := RedisGetKeyVal(client, data.info_hash, data)
 	fmt.Println(x)
 
-	response := formatResponseData(x, data)
+	response := formatResponseData(client, x, data)
 	fmt.Println(response)
 
 	w.Write([]byte(response))
