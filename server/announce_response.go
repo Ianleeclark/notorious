@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
+	"gopkg.in/redis.v3"
 	"net"
 	"strconv"
 	"strings"
@@ -56,9 +57,9 @@ func CompactAllPeers(ipport []string) []byte {
 	return ret.Bytes()
 }
 
-func formatResponseData(ips []string, data *announceData) string {
+func formatResponseData(c *redis.Client, ips []string, data *announceData) string {
 	compactPeerList := CompactAllPeers(ips)
-	return EncodeResponse(compactPeerList, data)
+	return EncodeResponse(c, compactPeerList, data)
 }
 
 func encodeKV(key string, value string) string {
@@ -68,20 +69,23 @@ func encodeKV(key string, value string) string {
 	return fmt.Sprintf("%s%s", bencode.EncodeByteString(key), bencode.EncodeByteString(value))
 }
 
-func EncodeResponse(ipport []byte, data *announceData) string {
-	ret := "d"
-	ret += encodeKV("complete", bencode.EncodeInt(1))
-	ipstr := ""
+func EncodeResponse(c *redis.Client, ipport []byte, data *announceData) (resp string) {
+	ret := ""
+	completeCount := len(RedisGetKeyVal(c, data.info_hash, data))
+	incompleteCount := len(RedisGetKeyVal(c, data.info_hash, data))
+	ret += encodeKV("complete", bencode.EncodeInt(completeCount))
 
-	count := 0
+	ipstr := string(ipport)
 
-	ipstr += string(ipport)
+	ret += encodeKV("incomplete", bencode.EncodeInt(incompleteCount))
+	if data.compact {
+		ret += encodeKV("peers", ipstr)
+	} else {
+		// TODO(ian): Add an option if compact = 0
+		return ""
+	}
 
-	ret += encodeKV("incomplete", bencode.EncodeInt(count))
-	ret += "5:peers"
-	ret += strconv.Itoa(count)
-	ret += ":"
-	ret += ipstr
-	ret += "e"
-	return ret
+	resp = bencode.EncodeDictionary(ret, "")
+
+	return
 }

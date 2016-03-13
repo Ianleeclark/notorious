@@ -25,7 +25,16 @@ func TestEncodeList(t *testing.T) {
 
 func TestEncodeDictionary(t *testing.T) {
 	expectedResult := "d3:key5:valuee"
-	result := EncodeDictionary("key", "value")
+	result := EncodeDictionary("3:key", "5:value")
+
+	if result != expectedResult {
+		t.Fatalf("Expected %s, got %s", expectedResult, result)
+	}
+}
+
+func TestEncodeDictionarySubList(t *testing.T) {
+	expectedResult := "d3:keyl5:value4:testee"
+	result := EncodeDictionary("3:key", "l5:value4:teste")
 
 	if result != expectedResult {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)

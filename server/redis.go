@@ -33,6 +33,20 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	return val
 }
 
+func RedisGetCount(c *redis.Client, info_hash string, member string) (retval []string, err error) {
+	// A generic function which is used to retrieve either the complete count
+	// or the incomplete count for a specified `info_hash`.
+	keymember := concatenateKeyMember(info_hash, member)
+
+	retval, err = c.SMembers(keymember).Result()
+	if err != nil {
+		// TODO(ian): Add actual error checking here.
+		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
+	}
+
+	return
+}
+
 func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
 	_, err := client.Get(key).Result()
 
