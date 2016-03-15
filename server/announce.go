@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"gopkg.in/redis.v3"
 	"net/url"
 	"strconv"
 )
@@ -69,6 +70,68 @@ func GetInt(u url.Values, key string) (ui uint64, err error) {
 		return
 	}
 	return
+}
+
+func (data *announceData) StartedEventHandler(c *redis.Client) {
+	// Called upon announce when a client starts a download or creates a new
+	// torrent on the tracker. Adds a user to incomplete list in redis.
+
+	if !data.infoHashExists(c) {
+		data.createInfoHashKey(c)
+	}
+
+	keymember := fmt.Sprintf("%s:incomplete", data.info_hash)
+	RedisSetKeyVal(c, keymember, fmt.Sprintf("%s:%d", data.ip, data.port))
+
+}
+
+func (data *announceData) StoppedEventHandler(c *redis.Client) {
+	// Called upon announce whenever a client attempts to shut-down gracefully.
+	// Ensures that the client is removed from complete/incomplete lists.
+
+	// TODO(ian): This is what happend whenever the torrent client shuts down
+	// gracefully, so we need to call the mysql backend and store the info and
+	// remove the ipport from completed/incomplete redis kvs
+
+	if data.infoHashExists(c) {
+		// TODO(ian): THis is not done!
+		data.removeFromKVStorage(c, data.event)
+	} else {
+		return
+	}
+}
+
+func (data *announceData) CompletedEventHandler(c *redis.Client) {
+	// Called upon announce when a client finishes a download. Removes the
+	// client from incomplete in redis and places their peer info into
+	// complete.
+
+	if !data.infoHashExists(c) {
+		data.createInfoHashKey(c)
+	} else {
+		data.removeFromKVStorage(c, "incomplete")
+	}
+
+	keymember := fmt.Sprintf("%s:complete", data.info_hash)
+	// TODO(ian): DRY!
+	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
+	RedisSetKeyVal(c, keymember, ipport)
+}
+
+func (data *announceData) removeFromKVStorage(c *redis.Client, subkey string) {
+	// Remove the subkey from the kv storage.
+
+	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
+	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
+	RedisRemoveKeysValue(c, keymember, ipport)
+}
+
+func (data *announceData) infoHashExists(c *redis.Client) bool {
+	return RedisGetBoolKeyVal(c, data.info_hash, data)
+}
+
+func (data *announceData) createInfoHashKey(c *redis.Client) {
+	CreateNewTorrentKey(c, data.info_hash)
 }
 
 func ParseInfoHash(s string) string {

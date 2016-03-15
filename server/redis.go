@@ -17,17 +17,13 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
-	keymember := concatenateKeyMember(key, "ip")
+	// TODO(ian): Don't explicitly access at `complete`
+	keymember := concatenateKeyMember(key, "complete")
 
 	val, err := client.SMembers(keymember).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
 		CreateNewTorrentKey(client, keymember)
-	}
-
-	// If no keys yet exist in the KV storage.
-	if len(val) == 0 {
-		RedisSetKeyVal(client, keymember, createIpPortPair(value))
 	}
 
 	return val
@@ -53,14 +49,19 @@ func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) boo
 	return err != nil
 }
 
+func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
+	// Remove a `value` from `key` in the redis kv storage. `key` is typically
+	// a keymember of info_hash:(in)complete and the value is typically the
+	// ip:port concatenated.
+	c.SRem(key, value)
+}
+
 func CreateNewTorrentKey(client *redis.Client, key string) {
 	// CreateNewTorrentKey creates a new key. By default, it adds a member
 	// ":ip". I don't think this ought to ever be generalized, as I just want
 	// Redis to function in one specific way in notorious.
+	client.SAdd(key, "complete", "incomplete")
 
-	// TODO(ian): You might want to set this explicitly in parameters
-	// value := *TorrentRequestData
-	client.SAdd(key, "ip")
 }
 
 func concatenateKeyMember(key string, member string) string {

@@ -57,27 +57,33 @@ func CompactAllPeers(ipport []string) []byte {
 }
 
 func formatResponseData(c *redis.Client, ips []string, data *announceData) string {
-	compactPeerList := CompactAllPeers(ips)
-	return EncodeResponse(c, compactPeerList, data)
+	return EncodeResponse(c, ips, data)
 }
 
-func EncodeResponse(c *redis.Client, ipport []byte, data *announceData) (resp string) {
+func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp string) {
 	ret := ""
 	completeCount := len(RedisGetKeyVal(c, data.info_hash, data))
 	incompleteCount := len(RedisGetKeyVal(c, data.info_hash, data))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
-	ipstr := string(ipport)
-
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	if data.compact {
-		ret += bencode.EncodeKV("peers", ipstr)
+	if len(ipport) > 0 {
+		if data.compact {
+			ipstr := string(CompactAllPeers(ipport))
+			ret += bencode.EncodeKV("peers", ipstr)
+		} else {
+			return bencode.EncodePeerList(ipport)
+		}
 	} else {
-		// TODO(ian): Add an option if compact = 0
-		return ""
+		ret += bencode.EncodeKV("peers", "")
 	}
 
 	resp = fmt.Sprintf("d%se", ret)
+	fmt.Printf("Response: %s\n", resp)
 
 	return
+}
+
+func createFailureMessage(msg string) string {
+	return fmt.Sprintf("d%se", bencode.EncodeKV("failure reason", msg))
 }
