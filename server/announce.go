@@ -76,17 +76,13 @@ func (data *announceData) StartedEventHandler(c *redis.Client) {
 	// Called upon announce when a client starts a download or creates a new
 	// torrent on the tracker. Adds a user to incomplete list in redis.
 
-	// TODO(ian):
-	// incomplete/complete depending on query data. Otherwise, create the
-	// info_hash in the redis KV storage and then add the ipport to
-	// (in)complete.
-
-	if data.infoHashExists(c) {
-		keymember := fmt.Sprintf("%s:incomplete", data.info_hash)
-		RedisSetKeyVal(c, keymember, fmt.Sprintf("%s:%d", data.ip, data.port))
-	} else {
+	if !data.infoHashExists(c) {
 		data.createInfoHashKey(c)
 	}
+
+	keymember := fmt.Sprintf("%s:incomplete", data.info_hash)
+	RedisSetKeyVal(c, keymember, fmt.Sprintf("%s:%d", data.ip, data.port))
+
 }
 
 func (data *announceData) StoppedEventHandler(c *redis.Client) {
@@ -98,7 +94,8 @@ func (data *announceData) StoppedEventHandler(c *redis.Client) {
 	// remove the ipport from completed/incomplete redis kvs
 
 	if data.infoHashExists(c) {
-
+		// TODO(ian): THis is not done!
+		data.removeFromKVStorage(c, data.event)
 	} else {
 		return
 	}
@@ -109,13 +106,24 @@ func (data *announceData) CompletedEventHandler(c *redis.Client) {
 	// client from incomplete in redis and places their peer info into
 	// complete.
 
-	// TODO(ian): Check if the info hash exists, if it does, add new ip port to
-	// info_hash:completed. Otherwise, create the new info_hash in the redis db
-	// and add to info_hash: completed
-	if data.infoHashExists(c) {
-	} else {
+	if !data.infoHashExists(c) {
 		data.createInfoHashKey(c)
+	} else {
+		data.removeFromKVStorage(c, "incomplete")
 	}
+
+	keymember := fmt.Sprintf("%s:complete", data.info_hash)
+	// TODO(ian): DRY!
+	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
+	RedisSetKeyVal(c, keymember, ipport)
+}
+
+func (data *announceData) removeFromKVStorage(c *redis.Client, subkey string) {
+	// Remove the subkey from the kv storage.
+
+	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
+	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
+	RedisRemoveKeysValue(c, keymember, ipport)
 }
 
 func (data *announceData) infoHashExists(c *redis.Client) bool {

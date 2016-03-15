@@ -67,7 +67,6 @@ func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp 
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	fmt.Println(ipport)
 	if len(ipport) > 0 {
 		if data.compact {
 			ipstr := string(CompactAllPeers(ipport))
@@ -75,6 +74,8 @@ func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp 
 		} else {
 			return bencode.EncodePeerList(ipport)
 		}
+	} else {
+		ret += bencode.EncodeKV("peers", "")
 	}
 
 	resp = fmt.Sprintf("d%se", ret)

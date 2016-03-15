@@ -50,6 +50,9 @@ func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) boo
 }
 
 func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
+	// Remove a `value` from `key` in the redis kv storage. `key` is typically
+	// a keymember of info_hash:(in)complete and the value is typically the
+	// ip:port concatenated.
 	c.SRem(key, value)
 }
 
