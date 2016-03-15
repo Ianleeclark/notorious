@@ -30,14 +30,27 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	data := new(announceData)
 	data.parseAnnounceData(req.URL)
 
+	switch data.event {
+	case "started":
+		data.StartedEventHandler(client)
+	case "stopped":
+		data.StoppedEventHandler(client)
+	case "completed":
+		data.CompletedEventHandler(client)
+	}
+
 	worker(client, data)
 	x := RedisGetKeyVal(client, data.info_hash, data)
-	fmt.Println(x)
 
-	response := formatResponseData(client, x, data)
-	fmt.Println(response)
+	if len(x) > 0 {
+		response := formatResponseData(client, x, data)
+		fmt.Printf("Resp: %s\n", response)
 
-	w.Write([]byte(response))
+		w.Write([]byte(response))
+	} else {
+		failMsg := fmt.Sprintf("No peers for torrent %s\n", data.info_hash)
+		w.Write([]byte(createFailureMessage(failMsg)))
+	}
 }
 
 func RunServer() {

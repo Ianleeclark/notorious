@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"gopkg.in/redis.v3"
 	"net/url"
 	"strconv"
 )
@@ -69,6 +70,60 @@ func GetInt(u url.Values, key string) (ui uint64, err error) {
 		return
 	}
 	return
+}
+
+func (data *announceData) StartedEventHandler(c *redis.Client) {
+	// Called upon announce when a client starts a download or creates a new
+	// torrent on the tracker. Adds a user to incomplete list in redis.
+
+	// TODO(ian):
+	// incomplete/complete depending on query data. Otherwise, create the
+	// info_hash in the redis KV storage and then add the ipport to
+	// (in)complete.
+
+	if data.infoHashExists(c) {
+		keymember := fmt.Sprintf("%s:incomplete", data.info_hash)
+		RedisSetKeyVal(c, keymember, fmt.Sprintf("%s:%d", data.ip, data.port))
+	} else {
+		data.createInfoHashKey(c)
+	}
+}
+
+func (data *announceData) StoppedEventHandler(c *redis.Client) {
+	// Called upon announce whenever a client attempts to shut-down gracefully.
+	// Ensures that the client is removed from complete/incomplete lists.
+
+	// TODO(ian): This is what happend whenever the torrent client shuts down
+	// gracefully, so we need to call the mysql backend and store the info and
+	// remove the ipport from completed/incomplete redis kvs
+
+	if data.infoHashExists(c) {
+
+	} else {
+		return
+	}
+}
+
+func (data *announceData) CompletedEventHandler(c *redis.Client) {
+	// Called upon announce when a client finishes a download. Removes the
+	// client from incomplete in redis and places their peer info into
+	// complete.
+
+	// TODO(ian): Check if the info hash exists, if it does, add new ip port to
+	// info_hash:completed. Otherwise, create the new info_hash in the redis db
+	// and add to info_hash: completed
+	if data.infoHashExists(c) {
+	} else {
+		data.createInfoHashKey(c)
+	}
+}
+
+func (data *announceData) infoHashExists(c *redis.Client) bool {
+	return RedisGetBoolKeyVal(c, data.info_hash, data)
+}
+
+func (data *announceData) createInfoHashKey(c *redis.Client) {
+	CreateNewTorrentKey(c, data.info_hash)
 }
 
 func ParseInfoHash(s string) string {
