@@ -43,22 +43,27 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
-	worker(client, data)
-	x := RedisGetKeyVal(client, data.info_hash, data)
-	if len(x) >= 30 {
-		x = x[0:30]
-	} else {
-		x = x[0:len(x)]
-	}
+	if data.event == "started" || data.event == "completed" {
+		worker(client, data)
+		x := RedisGetKeyVal(client, data.info_hash, data)
+		// TODO(ian): Move this into a seperate function.
+		// TODO(ian): Remove this magic number and use data.numwant, but limit ti
+		// to 30 max, as that's the bittorrent protocol suggested limit.
+		if len(x) >= 30 {
+			x = x[0:30]
+		} else {
+			x = x[0:len(x)]
+		}
 
-	if len(x) > 0 {
-		response := formatResponseData(client, x, data)
-		fmt.Printf("Resp: %s\n", response)
+		if len(x) > 0 {
+			response := formatResponseData(client, x, data)
+			fmt.Printf("Resp: %s\n", response)
 
-		w.Write([]byte(response))
-	} else {
-		failMsg := fmt.Sprintf("No peers for torrent %s\n", data.info_hash)
-		w.Write([]byte(createFailureMessage(failMsg)))
+			w.Write([]byte(response))
+		} else {
+			failMsg := fmt.Sprintf("No peers for torrent %s\n", data.info_hash)
+			w.Write([]byte(createFailureMessage(failMsg)))
+		}
 	}
 }
 
