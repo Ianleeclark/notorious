@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"gopkg.in/redis.v3"
@@ -23,24 +22,26 @@ type AnnounceResponse struct {
 	incomplete uint
 }
 
-func compactIPPort(ip string, port string) []byte {
-	res := bytes.NewBuffer(make([]byte, 0))
+func compactIPPort(b *bytes.Buffer, ip string, port string) (err error) {
+	compactIP := net.ParseIP(ip).To4()
+	if compactIP == nil {
+		err = fmt.Errorf("Failed to compact peer %s", ip)
+		return
+	}
 
-	intPort, err := strconv.Atoi(port)
+	b.Write(compactIP)
+
+	portInt, err := strconv.Atoi(port)
 	if err != nil {
-		panic("failure1")
+		err = fmt.Errorf("Failed to format port (%s) as an integer.", port)
+		return
 	}
+	// All credit to whatcd's ocelot tracker. I'm too dumb to figure this out
+	// on my own.
+	portCompact := []byte{byte(portInt >> 8), byte(portInt)}
+	b.Write(portCompact)
 
-	if err := binary.Write(res, binary.BigEndian, binary.BigEndian.Uint32(net.ParseIP(ip).To4())); err != nil {
-		panic("failure0")
-	}
-
-	err = binary.Write(res, binary.BigEndian, uint16(intPort))
-	if err != nil {
-		panic("failure2")
-	}
-
-	return res.Bytes()
+	return
 }
 
 func CompactAllPeers(ipport []string) []byte {
@@ -50,7 +51,10 @@ func CompactAllPeers(ipport []string) []byte {
 		ip := sz[0]
 		port := sz[1]
 
-		ret.Write(compactIPPort(ip, port))
+		err := compactIPPort(ret, ip, port)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return ret.Bytes()
@@ -67,21 +71,18 @@ func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp 
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	if len(ipport) > 0 {
-		if data.compact {
-			ipstr := string(CompactAllPeers(ipport))
-			ret += bencode.EncodeKV("peers", ipstr)
-		} else {
-			return bencode.EncodePeerList(ipport)
-		}
+	if data.compact {
+		ipstr := string(CompactAllPeers(ipport))
+		fmt.Println(ipport)
+		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
-		ret += bencode.EncodeKV("peers", "")
+		return bencode.EncodePeerList(ipport)
 	}
 
 	resp = fmt.Sprintf("d%se", ret)
 	fmt.Printf("Response: %s\n", resp)
 
-	return
+	return resp
 }
 
 func createFailureMessage(msg string) string {
