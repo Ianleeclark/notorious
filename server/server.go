@@ -45,6 +45,11 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	worker(client, data)
 	x := RedisGetKeyVal(client, data.info_hash, data)
+	if len(x) >= 30 {
+		x = x[0:30]
+	} else {
+		x = x[0:len(x)]
+	}
 
 	if len(x) > 0 {
 		response := formatResponseData(client, x, data)
