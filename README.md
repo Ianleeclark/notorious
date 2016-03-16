@@ -13,8 +13,8 @@ Hello everybody! Notorious aims to be a highy extensible tracker implemented in 
 There's probably a lot more! Check out my [issues page](https://github.com/GrappigPanda/notorious/issues)
 
 
-Hey, while you're here why don't you try out NetBSD after testing out my tracker [NetBSD-7.0.arm64.torrent](NetBSD-7.0.arm64.torrent)
-(I'm not part of the NetBSD project or anything, I just like the product).
+Hey, while you're here why don't you try out NetBSD after testing out my tracker [NetBSD-7.0.arm64.torrent](https://github.com/GrappigPanda/notorious/blob/master/NetBSD-7.0-amd64.iso.torrent)
+(I'm not part of the NetBSD project or anything, I just like the product -- also, you probably run Intel, so this torrent doesn't really do you any good unless you're looking to virtualize NetBSD version 7.0. So for that one person out there, this one's for you).
 
 
 
