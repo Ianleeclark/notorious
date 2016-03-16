@@ -3,25 +3,26 @@ package server
 import (
 	"fmt"
 	"gopkg.in/redis.v3"
+	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
-func (a *announceData) parseAnnounceData(u *url.URL) (err error) {
-	query := u.Query()
+func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
+	query := req.URL.Query()
 	a.info_hash = ParseInfoHash(query.Get("info_hash"))
 	if a.info_hash == "" {
 		err = fmt.Errorf("No info_hash provided.")
 		return
 	}
-	a.ip = query.Get("ip")
-	if a.ip == "" {
-		return fmt.Errorf("No info_hash provided.")
+	if strings.Contains(req.RemoteAddr, ":") {
+		a.ip = strings.Split(req.RemoteAddr, ":")[0]
+	} else {
+		a.ip = query.Get(req.RemoteAddr)
 	}
 	a.peer_id = query.Get("peer_id")
-	if a.peer_id == "" {
-		return fmt.Errorf("No info_hash provided.")
-	}
+
 	a.port, err = GetInt(query, "port")
 	if err != nil {
 		return fmt.Errorf("Failed to get port")
@@ -43,14 +44,12 @@ func (a *announceData) parseAnnounceData(u *url.URL) (err error) {
 	}
 	a.numwant, err = GetInt(query, "numwant")
 	if err != nil {
-		err = fmt.Errorf("Failed to get number of peers requested.")
-		return
+		a.numwant = 0
 	}
 	if x := query.Get("compact"); x != "" {
 		a.compact, err = strconv.ParseBool(x)
 		if err != nil {
-			err = fmt.Errorf("Failed to parse a boolean value from `compact`.")
-			return
+			a.compact = false
 		}
 	}
 	a.event = query.Get("event")
@@ -80,9 +79,21 @@ func (data *announceData) StartedEventHandler(c *redis.Client) {
 		data.createInfoHashKey(c)
 	}
 
-	keymember := fmt.Sprintf("%s:incomplete", data.info_hash)
-	RedisSetKeyVal(c, keymember, fmt.Sprintf("%s:%d", data.ip, data.port))
+	keymember := ""
+	ipport := ""
 
+	if !(data.left == 0) {
+		keymember = fmt.Sprintf("%s:incomplete", data.info_hash)
+		ipport = fmt.Sprintf("%s:%d", data.ip, data.port)
+	} else {
+		keymember = fmt.Sprintf("%s:complete", data.info_hash)
+		ipport = fmt.Sprintf("%s:%d", data.ip, data.port)
+	}
+
+	RedisSetKeyVal(c, keymember, ipport)
+	if RedisSetKeyIfNotExists(c, keymember, ipport) {
+		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
+	}
 }
 
 func (data *announceData) StoppedEventHandler(c *redis.Client) {
@@ -109,13 +120,16 @@ func (data *announceData) CompletedEventHandler(c *redis.Client) {
 	if !data.infoHashExists(c) {
 		data.createInfoHashKey(c)
 	} else {
+		fmt.Printf("Removing host %s:%v to %s:incomplete\n", data.ip, data.port, data.info_hash)
 		data.removeFromKVStorage(c, "incomplete")
 	}
 
 	keymember := fmt.Sprintf("%s:complete", data.info_hash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
-	RedisSetKeyVal(c, keymember, ipport)
+	if RedisSetKeyIfNotExists(c, keymember, ipport) {
+		fmt.Printf("Adding host %s to %s:complete\n", ipport, data.info_hash)
+	}
 }
 
 func (data *announceData) removeFromKVStorage(c *redis.Client, subkey string) {

@@ -28,7 +28,10 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	client := OpenClient()
 
 	data := new(announceData)
-	data.parseAnnounceData(req.URL)
+	err := data.parseAnnounceData(req)
+	if err != nil {
+		panic(err)
+	}
 
 	switch data.event {
 	case "started":
@@ -38,6 +41,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	case "completed":
 		data.CompletedEventHandler(client)
 	}
+	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
 	worker(client, data)
 	x := RedisGetKeyVal(client, data.info_hash, data)
