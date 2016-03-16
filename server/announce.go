@@ -120,7 +120,6 @@ func (data *announceData) CompletedEventHandler(c *redis.Client) {
 	if !data.infoHashExists(c) {
 		data.createInfoHashKey(c)
 	} else {
-		fmt.Printf("Removing host %s:%v to %s:incomplete\n", data.ip, data.port, data.info_hash)
 		data.removeFromKVStorage(c, "incomplete")
 	}
 
@@ -134,9 +133,10 @@ func (data *announceData) CompletedEventHandler(c *redis.Client) {
 
 func (data *announceData) removeFromKVStorage(c *redis.Client, subkey string) {
 	// Remove the subkey from the kv storage.
-
 	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
 	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
+
+	fmt.Printf("Removing host %s to \n", ipport, keymember)
 	RedisRemoveKeysValue(c, keymember, ipport)
 }
 

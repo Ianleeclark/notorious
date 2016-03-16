@@ -40,14 +40,17 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		data.StoppedEventHandler(client)
 	case "completed":
 		data.CompletedEventHandler(client)
+	default:
+		data.StartedEventHandler(client)
 	}
+
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
-	if data.event == "started" || data.event == "completed" {
+	if data.event == "started" || data.event == "completed" || data.event == "" || data.event == " " {
 		worker(client, data)
 		x := RedisGetKeyVal(client, data.info_hash, data)
 		// TODO(ian): Move this into a seperate function.
-		// TODO(ian): Remove this magic number and use data.numwant, but limit ti
+		// TODO(ian): Remove this magic number and use data.numwant, but limit it
 		// to 30 max, as that's the bittorrent protocol suggested limit.
 		if len(x) >= 30 {
 			x = x[0:30]
