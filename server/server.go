@@ -40,6 +40,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		data.StoppedEventHandler(client)
 	case "completed":
 		data.CompletedEventHandler(client)
+	default:
+		data.StartedEventHandler(client)
 	}
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
