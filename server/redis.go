@@ -49,6 +49,14 @@ func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) boo
 	return err != nil
 }
 
+func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
+	rv = RedisGetBoolKeyVal(c, keymember, value)
+	if !rv {
+		RedisSetKeyVal(c, keymember, value)
+	}
+	return
+}
+
 func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
 	// Remove a `value` from `key` in the redis kv storage. `key` is typically
 	// a keymember of info_hash:(in)complete and the value is typically the
