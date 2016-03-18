@@ -45,13 +45,13 @@ func compactIPPort(b *bytes.Buffer, ip string, port string) (err error) {
 }
 
 func CompactAllPeers(ipport []string) []byte {
-	ret := bytes.NewBuffer(make([]byte, 0))
+	var ret bytes.Buffer
 	for i := range ipport {
 		sz := strings.Split(ipport[i], ":")
 		ip := sz[0]
 		port := sz[1]
 
-		err := compactIPPort(ret, ip, port)
+		err := compactIPPort(&ret, ip, port)
 		if err != nil {
 			panic(err)
 		}
@@ -73,15 +73,13 @@ func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
 	if data.compact {
 		ipstr := string(CompactAllPeers(ipport))
-		fmt.Println(ipport)
+		fmt.Println(ipstr)
 		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
 		return bencode.EncodePeerList(ipport)
 	}
 
 	resp = fmt.Sprintf("d%se", ret)
-	fmt.Printf("Response: %s\n", resp)
-
 	return resp
 }
 

@@ -35,12 +35,14 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	switch data.event {
 	case "started":
+		data.event = "started"
 		data.StartedEventHandler(client)
 	case "stopped":
 		data.StoppedEventHandler(client)
 	case "completed":
 		data.CompletedEventHandler(client)
 	default:
+		data.event = "started"
 		data.StartedEventHandler(client)
 	}
 
