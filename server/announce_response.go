@@ -71,16 +71,14 @@ func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp 
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	if data.compact {
+	if data.compact || !data.compact {
 		ipstr := string(CompactAllPeers(ipport))
-		fmt.Println(ipstr)
 		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
 		return bencode.EncodePeerList(ipport)
 	}
 
-	resp = fmt.Sprintf("d%se", ret)
-	return resp
+	return fmt.Sprintf("d%se", ret)
 }
 
 func createFailureMessage(msg string) string {
