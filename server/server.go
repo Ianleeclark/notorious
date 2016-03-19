@@ -60,7 +60,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(x) > 0 {
-			w.Header().set("Content-Type", "text/plain")
+			w.Header().Set("Content-Type", "text/plain")
 			response := formatResponseData(client, x, data)
 
 			w.Write([]byte(response))
