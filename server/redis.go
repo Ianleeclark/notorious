@@ -29,6 +29,27 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	return val
 }
 
+func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string {
+	keymember := concatenateKeyMember(key, "complete")
+
+	val, err := c.SMembers(keymember).Result()
+	if err != nil {
+		// Fail because the key doesn't exist in the KV storage.
+		CreateNewTorrentKey(c, keymember)
+	}
+
+	keymember = concatenateKeyMember(key, "incomplete")
+
+	val2, err := c.SMembers(keymember).Result()
+	if err != nil {
+		panic("Failed to get incomplete peers for")
+	} else {
+		val = append(val, val2...)
+	}
+
+	return val
+}
+
 func RedisGetCount(c *redis.Client, info_hash string, member string) (retval []string, err error) {
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.

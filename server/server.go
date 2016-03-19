@@ -35,12 +35,14 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	switch data.event {
 	case "started":
+		data.event = "started"
 		data.StartedEventHandler(client)
 	case "stopped":
 		data.StoppedEventHandler(client)
 	case "completed":
 		data.CompletedEventHandler(client)
 	default:
+		data.event = "started"
 		data.StartedEventHandler(client)
 	}
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
@@ -58,8 +60,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(x) > 0 {
+			w.Header().Set("Content-Type", "text/plain")
 			response := formatResponseData(client, x, data)
-			fmt.Printf("Resp: %s\n", response)
 
 			w.Write([]byte(response))
 		} else {
