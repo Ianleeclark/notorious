@@ -35,7 +35,7 @@ I have not yet included instructions for running everything on bare-metal and I'
 Hey, while you're here why don't you try out NetBSD after testing out my tracker [NetBSD-7.0.arm64.torrent](https://github.com/GrappigPanda/notorious/blob/master/NetBSD-7.0-amd64.iso.torrent)
 (I'm not part of the NetBSD project or anything, I just like the product -- also, you probably run Intel, so this torrent doesn't really do you any good unless you're looking to virtualize NetBSD version 7.0. So for that one person out there, this one's for you).
 
-# About @GrappigPanda/Ian Clark
+# Contact Notorious
 
 Notorious is a project which I've had a ton of fun learning Go in, but do realize I'm still learning Go so I do make non-idiomatic decisions. If you see anywhere that you think I could improve my code or golang usage, please:
 
