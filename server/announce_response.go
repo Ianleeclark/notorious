@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
-	"gopkg.in/redis.v3"
 	"net"
 	"strconv"
 	"strings"
@@ -60,14 +59,14 @@ func CompactAllPeers(ipport []string) []byte {
 	return ret.Bytes()
 }
 
-func formatResponseData(c *redis.Client, ips []string, data *announceData) string {
-	return EncodeResponse(c, ips, data)
+func formatResponseData(ips []string, data *announceData) string {
+	return EncodeResponse(ips, data)
 }
 
-func EncodeResponse(c *redis.Client, ipport []string, data *announceData) (resp string) {
+func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret := ""
-	completeCount := len(RedisGetKeyVal(c, data.info_hash, data))
-	incompleteCount := len(RedisGetKeyVal(c, data.info_hash, data))
+	completeCount := len(RedisGetKeyVal(data.redisClient, data.info_hash, data))
+	incompleteCount := len(RedisGetKeyVal(data.redisClient, data.info_hash, data))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
