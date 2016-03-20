@@ -2,31 +2,28 @@ package server
 
 import (
 	"fmt"
-	"gopkg.in/redis.v3"
 	"net/http"
 )
 
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
-func worker(client *redis.Client, data *announceData) []string {
-	if RedisGetBoolKeyVal(client, data.info_hash, data) {
-		x := RedisGetKeyVal(client, data.info_hash, data)
+func worker(data *announceData) []string {
+	if RedisGetBoolKeyVal(data.redisClient, data.info_hash, data) {
+		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
 
-		RedisSetKeyVal(client,
+		RedisSetKeyVal(data.redisClient,
 			concatenateKeyMember(data.info_hash, "ip"),
 			createIpPortPair(data))
 
 		return x
 
 	} else {
-		CreateNewTorrentKey(client, data.info_hash)
-		return worker(client, data)
+		CreateNewTorrentKey(data.redisClient, data.info_hash)
+		return worker(data)
 	}
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
-	client := OpenClient()
-
 	data := new(announceData)
 	err := data.parseAnnounceData(req)
 	if err != nil {
@@ -35,20 +32,20 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	switch data.event {
 	case "started":
-		data.StartedEventHandler(client)
+		data.StartedEventHandler()
 	case "stopped":
-		data.StoppedEventHandler(client)
+		data.StoppedEventHandler()
 	case "completed":
-		data.CompletedEventHandler(client)
+		data.CompletedEventHandler()
 	default:
-		data.StartedEventHandler(client)
+		data.StartedEventHandler()
 	}
 
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
 	if data.event == "started" || data.event == "completed" || data.event == "" || data.event == " " {
-		worker(client, data)
-		x := RedisGetKeyVal(client, data.info_hash, data)
+		worker(data)
+		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
 		// TODO(ian): Move this into a seperate function.
 		// TODO(ian): Remove this magic number and use data.numwant, but limit it
 		// to 30 max, as that's the bittorrent protocol suggested limit.
@@ -59,7 +56,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(x) > 0 {
-			response := formatResponseData(client, x, data)
+			response := formatResponseData(x, data)
 			fmt.Printf("Resp: %s\n", response)
 
 			w.Write([]byte(response))
@@ -75,14 +72,4 @@ func RunServer() {
 
 	mux.HandleFunc("/announce", requestHandler)
 	http.ListenAndServe(":3000", mux)
-}
-
-func OpenClient() *redis.Client {
-	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-
-	return client
 }

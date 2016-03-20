@@ -1,5 +1,9 @@
 package server
 
+import (
+	"gopkg.in/redis.v3"
+)
+
 const (
 	STARTED = iota
 	COMPLETED
@@ -13,16 +17,17 @@ type TorrentEvent struct {
 }
 
 type announceData struct {
-	info_hash  string //20 byte sha1 hash
-	peer_id    string //max len 20
-	ip         string //optional
-	event      string // TorrentEvent
-	port       uint64 // port number the peer is listening on
-	uploaded   uint64 // base10 ascii amount uploaded so far
-	downloaded uint64 // base10 ascii amount downloaded so far
-	left       uint64 // # of bytes left to download (base 10 ascii)
-	numwant    uint64 // Number of peers requested by client.
-	compact    bool   // Bep23 peer list compression decision: True -> compress bep23
+	info_hash   string        //20 byte sha1 hash
+	peer_id     string        //max len 20
+	ip          string        //optional
+	event       string        // TorrentEvent
+	port        uint64        // port number the peer is listening on
+	uploaded    uint64        // base10 ascii amount uploaded so far
+	downloaded  uint64        // base10 ascii amount downloaded so far
+	left        uint64        // # of bytes left to download (base 10 ascii)
+	numwant     uint64        // Number of peers requested by client.
+	compact     bool          // Bep23 peer list compression decision: True -> compress bep23
+	redisClient *redis.Client // The redis client connection handler to use.
 }
 
 type TorrentResponseData struct {
