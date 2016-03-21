@@ -40,3 +40,6 @@ type TorrentResponseData struct {
 }
 
 var ANNOUNCE_URL = "/announce"
+
+// TODO(ian): Set this expireTime to a config-loaded value.
+// expireTime := 5 * 60
