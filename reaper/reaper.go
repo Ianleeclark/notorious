@@ -8,7 +8,7 @@ import (
 
 func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
 	// Fan-out method to reap peers who have outlived their TTL.
-	keys, err := getAllKeys(c, infoHash)
+	keys, err := c.SMembers(infoHash).Result()
 	if err != nil {
 		panic(err)
 	}
@@ -16,7 +16,6 @@ func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
 	count := 0
 	for i := range keys {
 		if c.TTL(keys[i]).Val() <= 0 {
-			// TODO(ian): Find out why KEYS isn't getting active, non-srem keys
 			if c.SRem(infoHash, keys[i]).Val() == 1 {
 				count += 1
 			}

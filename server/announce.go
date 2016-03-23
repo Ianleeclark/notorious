@@ -137,7 +137,7 @@ func (data *announceData) removeFromKVStorage(subkey string) {
 	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
 	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
 
-	fmt.Printf("Removing host %s to \n", ipport, keymember)
+	fmt.Printf("Removing host %v to %v\n", ipport, keymember)
 	RedisRemoveKeysValue(data.redisClient, keymember, ipport)
 }
 

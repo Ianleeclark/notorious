@@ -72,7 +72,6 @@ func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
 	if data.compact {
 		ipstr := string(CompactAllPeers(ipport))
-		fmt.Println(ipport)
 		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
 		return bencode.EncodePeerList(ipport)
