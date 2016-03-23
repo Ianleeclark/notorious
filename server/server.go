@@ -30,18 +30,22 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
+	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
+
 	switch data.event {
+
 	case "started":
 		data.StartedEventHandler()
+
 	case "stopped":
 		data.StoppedEventHandler()
+
 	case "completed":
 		data.CompletedEventHandler()
+
 	default:
 		data.StartedEventHandler()
 	}
-
-	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
 	if data.event == "started" || data.event == "completed" || data.event == "" || data.event == " " {
 		worker(data)
@@ -57,9 +61,8 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 		if len(x) > 0 {
 			response := formatResponseData(x, data)
-			fmt.Printf("Resp: %s\n", response)
-
 			w.Write([]byte(response))
+
 		} else {
 			failMsg := fmt.Sprintf("No peers for torrent %s\n", data.info_hash)
 			w.Write([]byte(createFailureMessage(failMsg)))
