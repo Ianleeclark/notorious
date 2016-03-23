@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	go reaper.StartReapingScheduler(5 * 60 * time.Second)
+	go reaper.StartReapingScheduler(5 * 6 * time.Second)
 	server.RunServer()
 }
