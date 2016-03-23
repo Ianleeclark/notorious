@@ -1,9 +1,12 @@
 package main
 
 import (
-    "github.com/GrappigPanda/notorious/server"
+	"github.com/GrappigPanda/notorious/reaper"
+	"github.com/GrappigPanda/notorious/server"
+	"time"
 )
 
 func main() {
-    server.RunServer()
+	go reaper.StartReapingScheduler(5 * 60 * time.Second)
+	server.RunServer()
 }

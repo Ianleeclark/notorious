@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"gopkg.in/redis.v3"
+	"strings"
+	"time"
 )
 
 func OpenClient() (client *redis.Client) {
@@ -16,10 +18,18 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
+var expireTime = time.Duration(5*60) * time.Second
+
 func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
 	client.SAdd(keymember, value)
+
+	if sz := strings.Split(value, ":"); len(sz) >= 1 {
+		// If the value being added can be converted to an int, it is a ip:port key
+		// and we can set an expiration on it.
+		client.Expire(fmt.Sprintf("%s%s", keymember, value), expireTime)
+	}
 }
 
 func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []string {
