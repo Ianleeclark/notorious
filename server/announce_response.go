@@ -44,13 +44,13 @@ func compactIPPort(b *bytes.Buffer, ip string, port string) (err error) {
 }
 
 func CompactAllPeers(ipport []string) []byte {
-	ret := bytes.NewBuffer(make([]byte, 0))
+	var ret bytes.Buffer
 	for i := range ipport {
 		sz := strings.Split(ipport[i], ":")
 		ip := sz[0]
 		port := sz[1]
 
-		err := compactIPPort(ret, ip, port)
+		err := compactIPPort(&ret, ip, port)
 		if err != nil {
 			panic(err)
 		}
@@ -70,17 +70,14 @@ func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	if data.compact {
+	if data.compact || !data.compact {
 		ipstr := string(CompactAllPeers(ipport))
 		ret += bencode.EncodeKV("peers", ipstr)
 	} else {
 		return bencode.EncodePeerList(ipport)
 	}
 
-	resp = fmt.Sprintf("d%se", ret)
-	fmt.Printf("Response: %s\n", resp)
-
-	return resp
+	return fmt.Sprintf("d%se", ret)
 }
 
 func createFailureMessage(msg string) string {
