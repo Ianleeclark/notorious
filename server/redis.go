@@ -25,7 +25,7 @@ func RedisSetIPMember(c *redis.Client, data *announceData) {
 	expireTime := time.Duration(24) * time.Hour
 
 	c.SAdd(keymember, value)
-	c.Expire(fmt.Sprintf("%s%s", keymember, value), expireTime)
+	c.Expire(fmt.Sprintf("%s%s", keymember, ipPort), expireTime)
 }
 
 func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
