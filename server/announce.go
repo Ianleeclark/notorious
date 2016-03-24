@@ -52,7 +52,10 @@ func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
 		}
 	}
 	a.event = query.Get("event")
-
+	if a.event == " " || a.event == "" {
+		a.event = "started"	
+	}
+	
 	a.redisClient = OpenClient()
 
 	return
@@ -106,7 +109,6 @@ func (data *announceData) StoppedEventHandler() {
 	// remove the ipport from completed/incomplete redis kvs
 
 	if data.infoHashExists() {
-		// TODO(ian): THis is not done!
 		data.removeFromKVStorage(data.event)
 	} else {
 		return
