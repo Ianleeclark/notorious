@@ -18,15 +18,22 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
-func RedisSetIPMember(data *announceData) {
+func RedisSetIPMember(data *announceData) (retval int) {
 	c := data.redisClient
 	keymember := concatenateKeyMember(data.info_hash, "ip")
 	ipPort := createIpPortPair(data)
 
 	expireTime := time.Duration(24) * time.Hour
 
-	c.SAdd(keymember, value)
+	if err := c.SAdd(keymember, ipPort).Err(); err != nil {
+		retval = 0
+		panic("Failed to add key")
+	} else {
+		retval = 1	
+	}
 	c.Expire(fmt.Sprintf("%s%s", keymember, ipPort), expireTime)
+	
+	return
 }
 
 func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
