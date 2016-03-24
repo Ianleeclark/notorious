@@ -18,7 +18,23 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
-var expireTime = time.Duration(5*60) * time.Second
+func RedisSetIPMember(data *announceData) (retval int) {
+	c := data.redisClient
+	keymember := concatenateKeyMember(data.info_hash, "ip")
+	ipPort := createIpPortPair(data)
+
+	expireTime := time.Duration(24) * time.Hour
+
+	if err := c.SAdd(keymember, ipPort).Err(); err != nil {
+		retval = 0
+		panic("Failed to add key")
+	} else {
+		retval = 1	
+	}
+	c.Expire(fmt.Sprintf("%s%s", keymember, ipPort), expireTime)
+	
+	return
+}
 
 func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
@@ -28,6 +44,8 @@ func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
 	if sz := strings.Split(value, ":"); len(sz) >= 1 {
 		// If the value being added can be converted to an int, it is a ip:port key
 		// and we can set an expiration on it.
+		expireTime := time.Duration(5) * time.Minute
+
 		client.Expire(fmt.Sprintf("%s%s", keymember, value), expireTime)
 	}
 }
@@ -37,7 +55,6 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
-	// TODO(ian): Don't explicitly access at `complete`
 	keymember := concatenateKeyMember(key, "complete")
 
 	val, err := client.SMembers(keymember).Result()
