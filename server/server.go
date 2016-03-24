@@ -11,9 +11,7 @@ func worker(data *announceData) []string {
 	if RedisGetBoolKeyVal(data.redisClient, data.info_hash, data) {
 		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
 
-		RedisSetKeyVal(data.redisClient,
-			concatenateKeyMember(data.info_hash, "ip"),
-			createIpPortPair(data))
+		RedisSetIPMember(data.redisClient, keymember, ipPort)
 
 		return x
 
