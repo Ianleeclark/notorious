@@ -14,8 +14,6 @@ func worker(data *announceData) []string {
 		RedisSetKeyVal(data.redisClient,
 			concatenateKeyMember(data.info_hash, "ip"),
 			createIpPortPair(data))
-		RedisSetKeyVal(data.redisClient,
-			concatena
 
 		return x
 
