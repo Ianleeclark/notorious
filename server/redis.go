@@ -18,7 +18,8 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
-func RedisSetIPMember(c *redis.Client, data *announceData) {
+func RedisSetIPMember(data *announceData) {
+	c := data.redisClient
 	keymember := concatenateKeyMember(data.info_hash, "ip")
 	ipPort := createIpPortPair(data)
 
