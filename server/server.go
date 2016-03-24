@@ -14,6 +14,8 @@ func worker(data *announceData) []string {
 		RedisSetKeyVal(data.redisClient,
 			concatenateKeyMember(data.info_hash, "ip"),
 			createIpPortPair(data))
+		RedisSetKeyVal(data.redisClient,
+			concatena
 
 		return x
 
@@ -42,12 +44,11 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	case "completed":
 		data.CompletedEventHandler()
-
 	default:
-		data.StartedEventHandler()
+		panic(fmt.Errorf("We're somehow getting this strange error..."))
 	}
 
-	if data.event == "started" || data.event == "completed" || data.event == "" || data.event == " " {
+	if data.event == "started" || data.event == "completed" {
 		worker(data)
 		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
 		// TODO(ian): Move this into a seperate function.
