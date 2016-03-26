@@ -33,6 +33,6 @@ func loadConfig() configStruct {
 }
 
 func main() {
-	go reaper.StartReapingScheduler(300 * time.Second)
+	go reaper.StartReapingScheduler(1 * time.Minute)
 	server.RunServer()
 }

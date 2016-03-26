@@ -8,6 +8,7 @@ ADD . /go/src/github.com/GrappigPanda/notorious
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN go get gopkg.in/redis.v3
+RUN go get github.com/spf13/viper
 RUN go install github.com/GrappigPanda/notorious
 
 CMD ["/usr/bin/supervisord"]

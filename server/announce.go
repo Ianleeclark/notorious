@@ -53,9 +53,9 @@ func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
 	}
 	a.event = query.Get("event")
 	if a.event == " " || a.event == "" {
-		a.event = "started"	
+		a.event = "started"
 	}
-	
+
 	a.redisClient = OpenClient()
 
 	return
@@ -136,10 +136,10 @@ func (data *announceData) CompletedEventHandler() {
 
 func (data *announceData) removeFromKVStorage(subkey string) {
 	// Remove the subkey from the kv storage.
-	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
+	ipport := fmt.Sprintf("%s:%d", data.ip, data.port)
 	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
 
-	fmt.Printf("Removing host %v to %v\n", ipport, keymember)
+	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
 	RedisRemoveKeysValue(data.redisClient, keymember, ipport)
 }
 

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var EXPIRETIME int64 = 5 * 60
+
 func OpenClient() (client *redis.Client) {
 	client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
@@ -20,33 +22,35 @@ func OpenClient() (client *redis.Client) {
 
 func RedisSetIPMember(data *announceData) (retval int) {
 	c := data.redisClient
-	keymember := concatenateKeyMember(data.info_hash, "ip")
-	ipPort := createIpPortPair(data)
 
-	expireTime := time.Duration(24) * time.Hour
+	keymember := concatenateKeyMember(data.info_hash, "ip")
+
+	currTime := int64(time.Now().UTC().AddDate(0, 0, 1).Unix())
+
+	ipPort := fmt.Sprintf("%s:%v", createIpPortPair(data), currTime)
 
 	if err := c.SAdd(keymember, ipPort).Err(); err != nil {
 		retval = 0
 		panic("Failed to add key")
+
 	} else {
-		retval = 1	
+		retval = 1
 	}
-	c.Expire(fmt.Sprintf("%s%s", keymember, ipPort), expireTime)
-	
+
 	return
 }
 
-func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
+func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
-	client.SAdd(keymember, value)
+	currTime := int64(time.Now().UTC().Unix())
+	currTime += EXPIRETIME
+	value = fmt.Sprintf("%v:%v", value, currTime)
 
 	if sz := strings.Split(value, ":"); len(sz) >= 1 {
 		// If the value being added can be converted to an int, it is a ip:port key
 		// and we can set an expiration on it.
-		expireTime := time.Duration(5) * time.Minute
-
-		client.Expire(fmt.Sprintf("%s%s", keymember, value), expireTime)
+		c.SAdd(keymember, value)
 	}
 }
 

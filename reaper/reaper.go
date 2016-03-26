@@ -3,6 +3,8 @@ package reaper
 import (
 	"fmt"
 	"gopkg.in/redis.v3"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,15 +16,31 @@ func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
 	}
 
 	count := 0
+	currTime := int64(time.Now().UTC().Unix())
+
 	for i := range keys {
-		if c.TTL(keys[i]).Val() <= 0 {
-			if c.SRem(infoHash, keys[i]).Val() == 1 {
+		if x := strings.Split(keys[i], ":"); len(x) != 3 {
+			c.SRem(infoHash, keys[i])
+
+		} else {
+			endTime := convertTimeToUnixTimeStamp(x[2])
+			if currTime >= endTime {
+				c.SRem(infoHash, keys[i])
 				count += 1
 			}
 		}
 	}
 
 	out <- count
+}
+
+func convertTimeToUnixTimeStamp(time string) (endTime int64) {
+	endTime, err := strconv.ParseInt(time, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	return
 }
 
 func reapPeers() (peersReaped int) {
