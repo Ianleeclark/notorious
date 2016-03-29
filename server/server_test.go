@@ -59,7 +59,10 @@ func TestGetIntFailEmptyKey(t *testing.T) {
 	key := "testInt"
 	
 	expectedResult := 50
-	result := GetInt(urlValues, key)
+	result, err := GetInt(urlValues, key)
+	if err != nil {
+		t.Fatalf("Failed to GetInt() with %v", err)	
+	}
 
 	if result == expectedResult {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
@@ -72,9 +75,12 @@ func TestGetInt(t *testing.T) {
 	key := "testInt"
 	
 	expectedResult := 50
-	result := GetInt(urlValues, key)
+	result, err := GetInt(urlValues, key)
+	if err != nil {
+		t.Fatalf("Failed to GetInt() with %v", err)	
+	}
 
-	if result != expectedResult {
+	if result != expectedResult || err != nil {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
 	}
 }
