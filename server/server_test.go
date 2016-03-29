@@ -54,7 +54,7 @@ func TestParseInfoHash(t *testing.T) {
 }
 
 func TestGetIntFailEmptyKey(t *testing.T) {
-	urlValues := url.Parse("http://google.com/").Query()
+	urlValues, _ := url.Parse("http://google.com/").Query()
 	key := "testInt"
 	
 	expectedResult := 50
@@ -66,7 +66,7 @@ func TestGetIntFailEmptyKey(t *testing.T) {
 }
 
 func TestGetInt(t *testing.T) {
-	urlValues := url.Parse("http://google.com/?testInt=50").Query()
+	urlValues, _ := url.Parse("http://google.com/?testInt=50").Query()
 	key := "testInt"
 	
 	expectedResult := 50
