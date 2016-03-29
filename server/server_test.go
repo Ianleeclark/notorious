@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"testing"
+	"net/url"
 )
 
 func TestParseUrlQuery(t *testing.T) {
