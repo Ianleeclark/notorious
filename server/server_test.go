@@ -51,3 +51,25 @@ func TestParseInfoHash(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
 	}
 }
+
+func TestGetIntFailEmptyKey(t *testing.T) {
+	expectedResult := 
+
+	if result != expectedResult {
+		t.Fatalf("Expected %s, got %s", expectedResult, result)
+	}
+}
+
+func TestGetInt(t *testing.T) {
+	urlValues := url.Parse("http://google.com/?testInt=50").Query()
+	key := "testInt"
+	
+	expectedResult := 50
+	result := GetInt(urlValues, key)
+
+	if result != expectedResult {
+		t.Fatalf("Expected %s, got %s", expectedResult, result)
+	}
+}
+
+
