@@ -60,8 +60,8 @@ func TestGetIntFailEmptyKey(t *testing.T) {
 	
 	expectedResult := uint64(50)
 	result, err := GetInt(urlValues, key)
-	if err != nil {
-		t.Fatalf("Failed to GetInt() with %v", err)	
+	if err == nil {
+		t.Fatalf("We somehow found the key?")	
 	}
 
 	if result == expectedResult {
