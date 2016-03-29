@@ -58,7 +58,7 @@ func TestGetIntFailEmptyKey(t *testing.T) {
 	urlValues := u.Query()
 	key := "testInt"
 	
-	expectedResult := 50
+	expectedResult := int64(50)
 	result, err := GetInt(urlValues, key)
 	if err != nil {
 		t.Fatalf("Failed to GetInt() with %v", err)	
@@ -74,7 +74,7 @@ func TestGetInt(t *testing.T) {
 	urlValues := u.Query()
 	key := "testInt"
 	
-	expectedResult := 50
+	expectedResult := int64(50)
 	result, err := GetInt(urlValues, key)
 	if err != nil {
 		t.Fatalf("Failed to GetInt() with %v", err)	
