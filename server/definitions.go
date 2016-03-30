@@ -1,7 +1,7 @@
 package server
 
 import (
-	"gopkg.in/redis.v3"
+	"github.com/NotoriousTracker/redis"
 )
 
 const (

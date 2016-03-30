@@ -3,7 +3,7 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/redis.v3"
+	"github.com/NotoriousTracker/redis"
 	"strings"
 	"time"
 )

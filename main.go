@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/GrappigPanda/notorious/reaper"
 	"github.com/GrappigPanda/notorious/server"
-	"github.com/spf13/viper"
+	"github.com/NotoriousTracker/viper"
 	"time"
 )
 

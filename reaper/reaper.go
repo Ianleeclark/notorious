@@ -2,7 +2,7 @@ package reaper
 
 import (
 	"fmt"
-	"gopkg.in/redis.v3"
+	"github.com/NotoriousTracker/redis.v3"
 	"strconv"
 	"strings"
 	"time"
