@@ -16,7 +16,7 @@ RUN mkdir -p /var/log/supervisor
 ADD . /go/src/github.com/GrappigPanda/notorious
 COPY build/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN go get github.com/NotoriousTracker/redis
+RUN go get gopkg.in/redis.v3
 RUN go get github.com/NotoriousTracker/gorm
 RUN go get github.com/NotoriousTracker/viper
 RUN go install github.com/GrappigPanda/notorious

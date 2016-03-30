@@ -2,7 +2,7 @@ package reaper
 
 import (
 	"fmt"
-	"github.com/NotoriousTracker/redis"
+	"gopkg.in/redis.v3"
 )
 
 func OpenClient() (client *redis.Client) {
