@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/GrappigPanda/notorious/database"
 	"net/http"
 )
 
@@ -69,9 +70,18 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
+	query := req.URL.Query()
+	infoHash := ParseInfoHash(query.Get("info_hash"))
+
+	data := db.ScrapeTorrent(db.OpenConnection(), infoHash)
+	return data
+}
+
 func RunServer() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", requestHandler)
+	//mux.HandleFunc("/scrape", scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }

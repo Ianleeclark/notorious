@@ -30,6 +30,16 @@ type announceData struct {
 	redisClient *redis.Client // The redis client connection handler to use.
 }
 
+type scrapeData struct {
+	infoHash string
+}
+
+type scrapeResponse struct {
+	complete   uint64
+	downloaded uint64
+	incomplete uint64
+}
+
 type TorrentResponseData struct {
 	interval     int
 	min_interval int
