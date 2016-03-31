@@ -27,7 +27,7 @@ func OpenConnection() *gorm.DB {
 	return db
 }
 
-func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
+func ScrapeTorrent(db *gorm.DB, infoHash string) *gorm.DB {
 	var torrent Torrent
-	return db.Where("infoHash = ?", infoHash).Find(&torrent).Value
+	return db.Where("infoHash = ?", infoHash).Find(&torrent)
 }
