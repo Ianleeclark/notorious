@@ -1,11 +1,13 @@
 package db
 
 import (
+	"fmt"
+	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-func formatConnectString(c *configStruct) string {
+func formatConnectString(c config.ConfigStruct) string {
 	return fmt.Sprintf("%s:%s@%s/%s",
 		c.MySQLUser,
 		c.MySQLPass,
@@ -14,7 +16,9 @@ func formatConnectString(c *configStruct) string {
 	)
 }
 
-func OpenConnection(c *configStruct) *DB {
+func OpenConnection() *gorm.DB {
+	c := config.LoadConfig()
+
 	db, err := gorm.Open("mysql", formatConnectString(c))
 	if err != nil {
 		panic(err)
@@ -23,6 +27,7 @@ func OpenConnection(c *configStruct) *DB {
 	return db
 }
 
-func ScrapeTorrent(db *DB, infoHash string) []string {
-	return db.Where("infoHash", infoHash).Find(&Torrent)
+func ScrapeTorrent(db *gorm.DB, infoHash string) *gorm.DB {
+	var torrent Torrent
+	return db.Where("infoHash = ?", infoHash).Find(&torrent)
 }
