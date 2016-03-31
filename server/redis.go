@@ -4,12 +4,54 @@ import (
 	"bytes"
 	"fmt"
 	"gopkg.in/redis.v3"
+	"strings"
+	"time"
 )
 
-func RedisSetKeyVal(client *redis.Client, keymember string, value string) {
+var EXPIRETIME int64 = 5 * 60
+
+func OpenClient() (client *redis.Client) {
+	client = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	return
+}
+
+func RedisSetIPMember(data *announceData) (retval int) {
+	c := data.redisClient
+
+	keymember := concatenateKeyMember(data.info_hash, "ip")
+
+	currTime := int64(time.Now().UTC().AddDate(0, 0, 1).Unix())
+
+	ipPort := fmt.Sprintf("%s:%v", createIpPortPair(data), currTime)
+
+	if err := c.SAdd(keymember, ipPort).Err(); err != nil {
+		retval = 0
+		panic("Failed to add key")
+
+	} else {
+		retval = 1
+	}
+
+	return
+}
+
+func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
-	client.SAdd(keymember, value)
+	currTime := int64(time.Now().UTC().Unix())
+	currTime += EXPIRETIME
+	value = fmt.Sprintf("%v:%v", value, currTime)
+
+	if sz := strings.Split(value, ":"); len(sz) >= 1 {
+		// If the value being added can be converted to an int, it is a ip:port key
+		// and we can set an expiration on it.
+		c.SAdd(keymember, value)
+	}
 }
 
 func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []string {
@@ -17,7 +59,6 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
-	// TODO(ian): Don't explicitly access at `complete`
 	keymember := concatenateKeyMember(key, "complete")
 
 	val, err := client.SMembers(keymember).Result()
