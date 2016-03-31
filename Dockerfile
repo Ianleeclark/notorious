@@ -21,7 +21,8 @@ COPY build/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Install dependencies
 RUN go get gopkg.in/redis.v3
-RUN go get github.com/NotoriousTracker/gorm
+RUN go get github.com/jinzhu/gorm
+RUN go get github.com/go-sql-driver/mysql
 RUN go get github.com/NotoriousTracker/viper
 
 # Build notorious
