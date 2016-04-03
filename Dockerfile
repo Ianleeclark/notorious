@@ -23,7 +23,7 @@ COPY build/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN go get gopkg.in/redis.v3
 RUN go get github.com/jinzhu/gorm
 RUN go get github.com/go-sql-driver/mysql
-RUN go get github.com/NotoriousTracker/viper
+RUN go get github.com/spf13/viper
 
 # Build notorious
 RUN go install github.com/GrappigPanda/notorious
