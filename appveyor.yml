@@ -1,6 +1,0 @@
-branches:
-  only:
-    - devel
-    
-test_script:
-  - docker build -t test .
