@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/NotoriousTracker/viper"
+	"github.com/spf13/viper"
 )
 
 type ConfigStruct struct {
