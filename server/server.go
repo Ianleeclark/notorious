@@ -47,15 +47,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	if data.event == "started" || data.event == "completed" {
 		worker(data)
-		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
-		// TODO(ian): Move this into a seperate function.
-		// TODO(ian): Remove this magic number and use data.numwant, but limit it
-		// to 30 max, as that's the bittorrent protocol suggested limit.
-		if len(x) >= 30 {
-			x = x[0:30]
-		} else {
-			x = x[0:len(x)]
-		}
+		x := RedisGetAllPeers(data.redisClient, data.info_hash, data)
 
 		if len(x) > 0 {
 			w.Header().Set("Content-Type", "text/plain")
