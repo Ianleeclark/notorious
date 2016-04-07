@@ -47,7 +47,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	if data.event == "started" || data.event == "completed" {
 		worker(data)
-		x := RedisGetAllPeers(redisClient, data.info_hash, data)
+		x := RedisGetAllPeers(data.redisClient, data.info_hash, data)
 
 		if len(x) > 0 {
 			w.Header().Set("Content-Type", "text/plain")
