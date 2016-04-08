@@ -27,7 +27,7 @@ func RedisSetIPMember(data *announceData) (retval int) {
 
 	currTime := int64(time.Now().UTC().AddDate(0, 0, 1).Unix())
 
-	ipPort := fmt.Sprintf("%s:%v", createIpPortPair(data), currTime)
+	ipPort := fmt.Sprintf("%s:%v", createIPPortPair(data), currTime)
 
 	if err := c.SAdd(keymember, ipPort).Err(); err != nil {
 		retval = 0
@@ -144,8 +144,8 @@ func concatenateKeyMember(key string, member string) string {
 	return buffer.String()
 }
 
-func createIpPortPair(value *announceData) string {
-	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
+func createIPPortPair(value *announceData) string {
+	// createIPPortPair creates a string formatted ("%s:%s", value.ip,
 	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
 	return fmt.Sprintf("%s:%s", value.ip, value.port)
 }
