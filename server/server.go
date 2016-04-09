@@ -54,7 +54,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 		if len(x) >= 30 {
 			x = x[0:30]
 		} else {
-			x = x[0:len(x)]
+			x = x[0:]
 		}
 
 		if len(x) > 0 {

@@ -2,8 +2,8 @@ package server
 
 import (
 	"fmt"
-	"testing"
 	"net/url"
+	"testing"
 )
 
 func TestParseUrlQuery(t *testing.T) {
@@ -57,32 +57,30 @@ func TestGetIntFailEmptyKey(t *testing.T) {
 	u, _ := url.Parse("http://google.com/")
 	urlValues := u.Query()
 	key := "testInt"
-	
+
 	expectedResult := uint64(50)
 	result, err := GetInt(urlValues, key)
 	if err == nil {
-		t.Fatalf("We somehow found the key?")	
+		t.Fatalf("We somehow found the key?")
 	}
 
 	if result == expectedResult {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
-	} 
+	}
 }
 
 func TestGetInt(t *testing.T) {
 	u, _ := url.Parse("http://google.com/?testInt=50")
 	urlValues := u.Query()
 	key := "testInt"
-	
+
 	expectedResult := uint64(50)
 	result, err := GetInt(urlValues, key)
 	if err != nil {
-		t.Fatalf("Failed to GetInt() with %v", err)	
+		t.Fatalf("Failed to GetInt() with %v", err)
 	}
 
 	if result != expectedResult || err != nil {
 		t.Fatalf("Expected %s, got %s", expectedResult, result)
 	}
 }
-
-
