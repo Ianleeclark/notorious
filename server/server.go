@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// FIELDS The fields that we expect from a peer upon info hash lookup
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
 func worker(data *announceData) []string {
@@ -16,10 +17,10 @@ func worker(data *announceData) []string {
 
 		return x
 
-	} else {
-		CreateNewTorrentKey(data.redisClient, data.info_hash)
-		return worker(data)
 	}
+
+    CreateNewTorrentKey(data.redisClient, data.info_hash)
+    return worker(data)
 }
 
 func requestHandler(w http.ResponseWriter, req *http.Request) {
@@ -78,6 +79,7 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
 	return data
 }
 
+// RunServer spins up the server and muxes the url
 func RunServer() {
 	mux := http.NewServeMux()
 

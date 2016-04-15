@@ -5,6 +5,7 @@ import (
 	"gopkg.in/redis.v3"
 )
 
+// OpenClient opens a client to Redis
 func OpenClient() (client *redis.Client) {
 	// Opens a connection to the redis connection.
 	// TODO(ian): Add a config option for redis host:port

@@ -5,16 +5,15 @@ import (
 )
 
 const (
+    // STARTED is an event sent to the tracker upon peer starting.
 	STARTED = iota
+    // COMPLETED is an event sent to the tracker upon peer completing a
+    // download
 	COMPLETED
+    // STOPPED is an event sent to the tracker upon peer gracefully shutting
+    // down
 	STOPPED
 )
-
-type TorrentEvent struct {
-	started   int
-	completed int
-	stopped   int
-}
 
 type announceData struct {
 	info_hash   string        //20 byte sha1 hash
@@ -40,6 +39,8 @@ type scrapeResponse struct {
 	incomplete uint64
 }
 
+// TorrentResponseData models what is sent back to the peer upon a succesful
+// info hash lookup.
 type TorrentResponseData struct {
 	interval     int
 	min_interval int
@@ -49,6 +50,7 @@ type TorrentResponseData struct {
 	peers        interface{}
 }
 
+// ANNOUNCE_URL The announce path for the http calls to reach.
 var ANNOUNCE_URL = "/announce"
 
 // TODO(ian): Set this expireTime to a config-loaded value.

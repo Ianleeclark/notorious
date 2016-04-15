@@ -8,8 +8,11 @@ import (
 	"time"
 )
 
+// EXPIRETIME signifies how long a peer will live under the specified info_hash
+// until the reaper removes it.
 var EXPIRETIME int64 = 5 * 60
 
+// OpenClient opens a connection to redis.
 func OpenClient() (client *redis.Client) {
 	client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
@@ -20,6 +23,7 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
+// RedisSetIPMember sets a key as a member of an infohash and sets a timeout.
 func RedisSetIPMember(data *announceData) (retval int) {
 	c := data.redisClient
 
@@ -40,6 +44,8 @@ func RedisSetIPMember(data *announceData) (retval int) {
 	return
 }
 
+// RedisSetKeyVal Sets a key to the specified value. Used mostly with adding a
+// peer into an info_hash
 func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
@@ -54,6 +60,7 @@ func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	}
 }
 
+// RedisGetKeyVal Lookup a peer in the specified infohash at `key`
 func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []string {
 	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
 	// provided key. If the key does not yet exist, we create the key in the KV
@@ -70,6 +77,7 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 	return val
 }
 
+// RedisGetAllPeers fetches all peers from the info_hash at `key`
 func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string {
 	keymember := concatenateKeyMember(key, "complete")
 
@@ -91,26 +99,29 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 	return val
 }
 
-func RedisGetCount(c *redis.Client, info_hash string, member string) (retval []string, err error) {
+// RedisGetCount counts all of the peers at `info_hash`
+func RedisGetCount(c *redis.Client, key string, member string) (retval []string, err error) {
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.
-	keymember := concatenateKeyMember(info_hash, member)
+	keymember := concatenateKeyMember(key, member)
 
 	retval, err = c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
-		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
+		err = fmt.Errorf("The info hash %s with member %s doesn't exist", key, member)
 	}
 
 	return
 }
 
+// RedisGetBoolKeyVal Checks if a `key` exists
 func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
 	_, err := client.Get(key).Result()
 
 	return err != nil
 }
 
+// RedisSetKeyIfNotExists Set a key if it doesn't exist.
 func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
 	rv = RedisGetBoolKeyVal(c, keymember, value)
 	if !rv {
@@ -119,17 +130,17 @@ func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv
 	return
 }
 
+// RedisRemoveKeysValue Remove a `value` from `key` in the redis kv storage. `key` is typically
+// a keymember of info_hash:(in)complete and the value is typically the
+// ip:port concatenated.
 func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
-	// Remove a `value` from `key` in the redis kv storage. `key` is typically
-	// a keymember of info_hash:(in)complete and the value is typically the
-	// ip:port concatenated.
 	c.SRem(key, value)
 }
 
+// CreateNewTorrentKey creates a new key. By default, it adds a member
+// ":ip". I don't think this ought to ever be generalized, as I just want
+// Redis to function in one specific way in notorious.
 func CreateNewTorrentKey(client *redis.Client, key string) {
-	// CreateNewTorrentKey creates a new key. By default, it adds a member
-	// ":ip". I don't think this ought to ever be generalized, as I just want
-	// Redis to function in one specific way in notorious.
 	client.SAdd(key, "complete", "incomplete")
 
 }

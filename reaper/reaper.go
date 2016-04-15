@@ -26,7 +26,7 @@ func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
 			endTime := convertTimeToUnixTimeStamp(x[2])
 			if currTime >= endTime {
 				c.SRem(infoHash, keys[i])
-				count += 1
+			    count++	
 			}
 		}
 	}
@@ -62,6 +62,8 @@ func reapPeers() (peersReaped int) {
 	return
 }
 
+// StartReapingScheduler hoists a seperate timer process and at the end of each
+// time countdown, calls the reaper to reap old peers
 func StartReapingScheduler(waitTime time.Duration) {
 	// The timer which sets off the peer reaping every `waitTime` seconds.
 	reapedPeers := 0

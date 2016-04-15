@@ -9,14 +9,16 @@ import (
 	"strings"
 )
 
-// TODO(ian): Finish crafting a response.
+// AnnounceResponseFailure Models the failure response sent on tracker
+// failures.
 type AnnounceResponseFailure struct {
 	failure string
 }
 
+// AnnounceResponse models the response sent to peers
 type AnnounceResponse struct {
 	interval   int // Interval in seconds a client should wait |.| messages
-	trackerId  string
+	trackerID  string
 	complete   uint
 	incomplete uint
 }
@@ -43,6 +45,7 @@ func compactIPPort(b *bytes.Buffer, ip string, port string) (err error) {
 	return
 }
 
+// CompactAllPeers Comapcts all of the peers according to BEP 23
 func CompactAllPeers(ipport []string) []byte {
 	var ret bytes.Buffer
 	for i := range ipport {
@@ -63,6 +66,8 @@ func formatResponseData(ips []string, data *announceData) string {
 	return EncodeResponse(ips, data)
 }
 
+// EncodeResponse groups all of the peer-requested data into a nice bencoded
+// string that we respond with.
 func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret := ""
 	completeCount := len(RedisGetKeyVal(data.redisClient, data.info_hash, data))
