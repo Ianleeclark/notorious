@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/NotoriousTracker/viper"
+	"github.com/spf13/viper"
 )
 
 // ConfigStruct holds the values that our config file holds

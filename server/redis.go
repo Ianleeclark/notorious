@@ -81,15 +81,19 @@ func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []str
 func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string {
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := c.SMembers(keymember).Result()
+	val, err := c.SRandMemberN(keymember, 30).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
 		CreateNewTorrentKey(c, keymember)
 	}
-
+	
+	if len(val) == 30 {
+		return val	
+	}
+	
 	keymember = concatenateKeyMember(key, "incomplete")
 
-	val2, err := c.SMembers(keymember).Result()
+	val2, err := c.SRandMemberN(keymember, int64(30 - len(val))).Result()
 	if err != nil {
 		panic("Failed to get incomplete peers for")
 	} else {
