@@ -6,14 +6,14 @@ import (
 	"unicode/utf8"
 )
 
+// EncodeInt encodes an int to a bencoded integer: "i<x>e"
 func EncodeInt(x int) string {
-	// Encode an an int to a bencoded integer: "i<x>e"
 	return fmt.Sprintf("i%de", x)
 }
 
+// EncodeList encodes a list of items (`items`) to a bencoded list:
+// "l<item1><item2><...><itemN>e"
 func EncodeList(items []string) string {
-	// Encode a list of items (`items`) to a bencoded list:
-	// "l<item1><item2><...><itemN>e"
 	tmp := "l"
 	for i := range items {
 		if items[i][0] == 'l' || items[i][0] == 'd' {
@@ -26,8 +26,8 @@ func EncodeList(items []string) string {
 	return tmp
 }
 
+// EncodeDictionary Takes a list of bencoded KVpairs and return a bencoded dictionary.
 func EncodeDictionary(kvpairs []string) (retdict string) {
-	// Take a list of bencoded KVpairs and return a bencoded dictionary.
 
 	retdict = "d"
 	for i := range kvpairs {
@@ -38,18 +38,17 @@ func EncodeDictionary(kvpairs []string) (retdict string) {
 	return
 }
 
+// EncodeByteString Encodes a string to <key length>:<key>
 func EncodeByteString(key string) string {
-	// Encode a string to <key length>:<key>
 	return fmt.Sprintf("%d:%s", utf8.RuneCountInString(key), key)
 }
 
+// EncodePeerList Handles peer list creation for non-compact responses. Mostly deprecated
+// for most torrent clients nowadays as compact is the default. Returns a
+// bencoded list of bencoded dictionaries containing "peer id", "ip",
+// "port": "ld7:peer id20:<peer id>2:ip9:<127.0.0.1>4:port4:7878ee"
+// peers contains a ip:port
 func EncodePeerList(peers []string) (retlist string) {
-	// Handles peer list creation for non-compact responses. Mostly deprecated
-	// for most torrent clients nowadays as compact is the default. Returns a
-	// bencoded list of bencoded dictionaries containing "peer id", "ip",
-	// "port": "ld7:peer id20:<peer id>2:ip9:<127.0.0.1>4:port4:7878ee"
-	// peers contains a ip:port
-
 	var tmpDict []string
 
 	for i := range peers {
@@ -71,6 +70,7 @@ func EncodePeerList(peers []string) (retlist string) {
 	return
 }
 
+// EncodeKV Encodes a KV pair into a string
 func EncodeKV(key string, value string) string {
 	key = EncodeByteString(key)
 	if value[0] == 'i' || value[0] == 'l' || value[0] == 'd' {
