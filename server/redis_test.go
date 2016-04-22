@@ -62,7 +62,7 @@ func TestRedisGetKeyValNoPreexistKey(t *testing.T) {
 
 func TestCreateIpPortPair(t *testing.T) {
     expectedReturn := "127.0.0.1:6767"
-    ret := createIpPortPair(&DATA)
+    ret := createIPPortPair(&DATA)
 
     if expectedReturn != ret {
         t.Fatalf("Expected %v, got %v", expectedReturn, ret)

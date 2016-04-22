@@ -107,12 +107,12 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int, err error) {
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.
-	keymember := concatenateKeyMember(key, member)
+	keymember := concatenateKeyMember(info_hash, member)
 
     x, err := c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
-		err = fmt.Errorf("The info hash %s with member %s doesn't exist", key, member)
+		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
 	}
 
     retval = len(x)
@@ -160,8 +160,8 @@ func concatenateKeyMember(key string, member string) string {
 	return buffer.String()
 }
 
+// createIPPortPair creates a string formatted ("%s:%s", value.ip,
+// value.port) looking like so: "127.0.0.1:6886" and returns this value.
 func createIPPortPair(value *announceData) string {
-	// createIPPortPair creates a string formatted ("%s:%s", value.ip,
-	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
 	return fmt.Sprintf("%v:%v", value.ip, value.port)
 }
