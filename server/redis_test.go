@@ -60,3 +60,95 @@ func TestRedisGetKeyValNoPreexistKey(t *testing.T) {
     }
 }
 
+func TestCreateIpPortPair(t *testing.T) {
+    expectedReturn := "127.0.0.1:6767"
+    ret := createIpPortPair(&DATA)
+
+    if expectedReturn != ret {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+
+func TestConcatenateKeyMember(t *testing.T) {
+    expectedReturn := "127.0.0.1:1024"
+    ret := concatenateKeyMember("127.0.0.1", "1024")
+
+    if expectedReturn != ret {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+
+func TestCreateNewTorrentKey(t *testing.T) {
+    CreateNewTorrentKey(DATA.redisClient, "testTestCreateNewTorrentKey")
+
+    ret, err := DATA.redisClient.Exists("testTestCreateNewTorrentKey").Result()
+    if err != nil {
+        t.Fatalf("%v", err)
+    }
+    if ret != true {
+        t.Fatalf("CreateNewTorrentKey:complete failed to create")
+    }
+
+    ret, err = DATA.redisClient.SIsMember("testTestCreateNewTorrentKey", "complete").Result()
+    if ret != true {
+        t.Fatalf("testTestCreateNewTorrentKey:complete is not a member")
+    }
+
+    ret, err = DATA.redisClient.SIsMember("testTestCreateNewTorrentKey", "incomplete").Result()
+    if ret != true {
+        t.Fatalf("testTestCreateNewTorrentKey:incomplete is not a member")
+    }
+
+}
+
+func TestRedisRemoveKeyValues(t *testing.T) {
+    DATA.redisClient.SAdd("TestRedisRemoveKeyVal", "Test1")
+    ret, err := DATA.redisClient.SIsMember("TestRedisRemoveKeyVal", "Test1").Result()
+    if err != nil {
+        t.Fatalf("%v", err)
+    }
+    if ret != true {
+        t.Fatalf("Failed in setup of TestRedisRemoveKeyValues to add a key")
+    }
+
+    RedisRemoveKeysValue(DATA.redisClient, "TestRedisRemoveKeyVal", "Test1")
+    ret, err = DATA.redisClient.SIsMember("TestRedisRemoveKeyVal", "Test1").Result()
+    if err != nil {
+        t.Fatalf("%v", err)
+    }
+    if ret == true {
+        t.Fatalf("RedisRemoveKeyVal failed to remove the key")
+    }
+
+}
+
+func TestRedisGetBoolKeyVal(t *testing.T) {
+    RedisSetKeyVal(DATA.redisClient, "TestRedisGetBoolKeyVal", "1024")
+
+    expectedReturn := true
+    ret := RedisGetBoolKeyVal(DATA.redisClient, "TestRedisGetBoolKeyVal", "1024")
+
+    if ret != expectedReturn {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+
+func TestRedisSetKeyIfNotExists(t *testing.T) {
+    expectedReturn := true
+    ret := RedisSetKeyIfNotExists(DATA.redisClient, "TestRedisSetKeyIfNotExists", "1024")
+
+    if ret != expectedReturn {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+
+func TestRedisSetKeyIfNotExistsPreExistingKey(t *testing.T) {
+    expectedReturn := true
+    RedisSetKeyVal(DATA.redisClient, "TestRedisSetKeyIfNotExists", "1024")
+    ret := RedisSetKeyIfNotExists(DATA.redisClient, "TestRedisSetKeyIfNotExists", "1024")
+
+    if ret != expectedReturn {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+

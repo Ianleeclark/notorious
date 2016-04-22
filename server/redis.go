@@ -111,9 +111,9 @@ func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int
 }
 
 func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
-	_, err := client.Get(key).Result()
+	ret, _ := client.Exists(key).Result()
 
-	return err != nil
+	return ret
 }
 
 func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
@@ -152,5 +152,5 @@ func concatenateKeyMember(key string, member string) string {
 func createIpPortPair(value *announceData) string {
 	// createIpPortPair creates a string formatted ("%s:%s", value.ip,
 	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
-	return fmt.Sprintf("%s:%s", value.ip, value.port)
+	return fmt.Sprintf("%v:%v", value.ip, value.port)
 }
