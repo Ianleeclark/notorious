@@ -134,7 +134,7 @@ func TestRedisGetBoolKeyVal(t *testing.T) {
 }
 
 func TestRedisSetKeyIfNotExists(t *testing.T) {
-    expectedReturn := true
+    expectedReturn := false
     ret := RedisSetKeyIfNotExists(DATA.redisClient, "TestRedisSetKeyIfNotExists", "1024")
 
     if ret != expectedReturn {
