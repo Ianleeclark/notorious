@@ -152,3 +152,152 @@ func TestRedisSetKeyIfNotExistsPreExistingKey(t *testing.T) {
     }
 }
 
+func TestRedisGetCount(t *testing.T) {
+    DATA.redisClient.SAdd("TestRedisGetCount", "Test")
+    DATA.redisClient.SAdd("TestRedisGetCount:Test", "1235")
+    DATA.redisClient.SAdd("TestRedisGetCount:Test", "1236")
+    DATA.redisClient.SAdd("TestRedisGetCount:Test", "1237")
+    DATA.redisClient.SAdd("TestRedisGetCount:Test", "1238")
+
+    expectedReturn := 4
+    ret, err := RedisGetCount(DATA.redisClient, "TestRedisGetCount", "Test")
+    if err != nil {
+        t.Fatalf("%v", err)
+    }
+
+    if ret != expectedReturn {
+        t.Fatalf("Expected %v, got %v", expectedReturn, ret)
+    }
+}
+
+func TestRedisGetAllPeers(t *testing.T) {
+    DATA.redisClient.SAdd("TestRedisGetAllPeers", "complete")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1235")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1236")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1237")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1238")
+
+    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers", &DATA)
+    x := len(ret)
+
+    if x != 4 {
+        t.Fatalf("Expected 4 peers, got %v", x)
+    }
+}
+
+func TestRedisGetAllPeersValGT30(t *testing.T) {
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1", "complete")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1201")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1202")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1203")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1204")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1205")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1206")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1207")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1208")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1209")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1210")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1211")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1212")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1213")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1214")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1215")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1216")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1217")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1218")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1209")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1200")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1201")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1202")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1203")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1204")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1205")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1216")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1217")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1218")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1219")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1220")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1221")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1222")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1221")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1222")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1223")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1224")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1225")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1226")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1227")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1228")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1229")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1230")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1231")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1232")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1233")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1234")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1235")
+
+    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers1", &DATA)
+    x := len(ret)
+
+    if x != 30 {
+        t.Fatalf("Expected 30 peers, got %v", x)
+    }
+}
+
+func TestRedisGetAllPeersValLT30(t *testing.T) {
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2", "complete")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1201")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1202")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1203")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1204")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1205")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1206")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1207")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1208")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1209")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1210")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1211")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1212")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1213")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1214")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:complete", "1215")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2", "incomplete")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1216")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1217")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1218")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1209")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1200")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1201")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1202")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1203")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1204")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1205")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1216")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1217")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1218")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1219")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1220")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1221")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1222")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1221")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1222")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1223")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1224")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1225")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1226")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1227")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1228")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1229")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1230")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1231")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1232")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1233")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1234")
+    DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1235")
+
+    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers2", &DATA)
+    x := len(ret)
+
+    if x != 30 {
+        t.Fatalf("Expected 30 peers, got %v", x)
+    }
+}
