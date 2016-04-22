@@ -86,11 +86,11 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 		// Fail because the key doesn't exist in the KV storage.
 		CreateNewTorrentKey(c, keymember)
 	}
-	
+
 	if len(val) == 30 {
-		return val	
+		return val
 	}
-	
+
 	keymember = concatenateKeyMember(key, "incomplete")
 
 	val2, err := c.SRandMemberN(keymember, int64(30 - len(val))).Result()
@@ -104,25 +104,26 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 }
 
 // RedisGetCount counts all of the peers at `info_hash`
-func RedisGetCount(c *redis.Client, key string, member string) (retval []string, err error) {
+func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int, err error) {
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.
 	keymember := concatenateKeyMember(key, member)
 
-	retval, err = c.SMembers(keymember).Result()
+    x, err := c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
 		err = fmt.Errorf("The info hash %s with member %s doesn't exist", key, member)
 	}
 
+    retval = len(x)
 	return
 }
 
 // RedisGetBoolKeyVal Checks if a `key` exists
 func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
-	_, err := client.Get(key).Result()
+	ret, _ := client.Exists(key).Result()
 
-	return err != nil
+	return ret
 }
 
 // RedisSetKeyIfNotExists Set a key if it doesn't exist.
@@ -162,5 +163,5 @@ func concatenateKeyMember(key string, member string) string {
 func createIPPortPair(value *announceData) string {
 	// createIPPortPair creates a string formatted ("%s:%s", value.ip,
 	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
-	return fmt.Sprintf("%s:%s", value.ip, value.port)
+	return fmt.Sprintf("%v:%v", value.ip, value.port)
 }
