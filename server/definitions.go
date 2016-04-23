@@ -28,7 +28,6 @@ type announceData struct {
 	left        uint64        // # of bytes left to download (base 10 ascii)
 	numwant     uint64        // Number of peers requested by client.
 	compact     bool          // Bep23 peer list compression decision: True -> compress bep23
-	redisClient *redis.Client // The redis client connection handler to use.
     requestContext requestAppContext // The request-specific connections
 }
 
@@ -38,6 +37,7 @@ type announceData struct {
 // Things that should persist only within the duration of a request.
 type requestAppContext struct {
     dbConn *gorm.DB
+	redisClient *redis.Client // The redis client connection handler to use.
 }
 
 type scrapeData struct {

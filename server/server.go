@@ -11,7 +11,7 @@ import (
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
 func worker(data *announceData) []string {
-	if RedisGetBoolKeyVal(data.redisClient, data.info_hash) {
+	if RedisGetBoolKeyVal(data.requestContext.redisClient, data.info_hash) {
 		x := RedisGetKeyVal(data, data.info_hash)
 
 		RedisSetIPMember(data)
@@ -20,7 +20,7 @@ func worker(data *announceData) []string {
 
 	}
 
-	CreateNewTorrentKey(data.redisClient, data.info_hash)
+	CreateNewTorrentKey(data.requestContext.redisClient, data.info_hash)
 	return worker(data)
 }
 

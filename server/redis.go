@@ -25,7 +25,7 @@ func OpenClient() (client *redis.Client) {
 
 // RedisSetIPMember sets a key as a member of an infohash and sets a timeout.
 func RedisSetIPMember(data *announceData) (retval int) {
-	c := data.redisClient
+	c := data.requestContext.redisClient
 
 	keymember := concatenateKeyMember(data.info_hash, "ip")
 
@@ -68,10 +68,10 @@ func RedisGetKeyVal(data *announceData, key string) []string {
 	// list.
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := data.redisClient.SMembers(keymember).Result()
+	val, err := data.requestContext.redisClient.SMembers(keymember).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(data.redisClient, keymember)
+		CreateNewTorrentKey(data.requestContext.redisClient, keymember)
 	}
 
 	return val
@@ -81,10 +81,10 @@ func RedisGetKeyVal(data *announceData, key string) []string {
 func RedisGetAllPeers(data *announceData, key string) []string {
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := data.redisClient.SRandMemberN(keymember, 30).Result()
+	val, err := data.requestContext.redisClient.SRandMemberN(keymember, 30).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(data.redisClient, keymember)
+		CreateNewTorrentKey(data.requestContext.redisClient, keymember)
 	}
 
 	if len(val) == 30 {
@@ -93,7 +93,7 @@ func RedisGetAllPeers(data *announceData, key string) []string {
 
 	keymember = concatenateKeyMember(key, "incomplete")
 
-	val2, err := data.redisClient.SRandMemberN(keymember, int64(30 - len(val))).Result()
+	val2, err := data.requestContext.redisClient.SRandMemberN(keymember, int64(30 - len(val))).Result()
 	if err != nil {
 		panic("Failed to get incomplete peers for")
 	} else {
