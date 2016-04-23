@@ -56,7 +56,7 @@ func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
 		a.event = "started"
 	}
 
-	a.redisClient = OpenClient()
+	a.requestContext.redisClient = OpenClient()
 
 	return
 }
@@ -97,8 +97,8 @@ func (a *announceData) StartedEventHandler() {
 		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
 	}
 
-	RedisSetKeyVal(a.redisClient, keymember, ipport)
-	if RedisSetKeyIfNotExists(a.redisClient, keymember, ipport) {
+	RedisSetKeyVal(a.requestContext.redisClient, keymember, ipport)
+	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 }
@@ -131,7 +131,7 @@ func (a *announceData) CompletedEventHandler() {
 	keymember := fmt.Sprintf("%s:complete", a.info_hash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", a.ip, a.port)
-	if RedisSetKeyIfNotExists(a.redisClient, keymember, ipport) {
+	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.info_hash)
 	}
 }
@@ -142,15 +142,15 @@ func (a *announceData) removeFromKVStorage(subkey string) {
 	keymember := fmt.Sprintf("%s:%s", a.info_hash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	RedisRemoveKeysValue(a.redisClient, keymember, ipport)
+	RedisRemoveKeysValue(a.requestContext.redisClient, keymember, ipport)
 }
 
 func (a *announceData) infoHashExists() bool {
-	return RedisGetBoolKeyVal(a.redisClient, a.info_hash)
+	return RedisGetBoolKeyVal(a.requestContext.redisClient, a.info_hash)
 }
 
 func (a *announceData) createInfoHashKey() {
-	CreateNewTorrentKey(a.redisClient, a.info_hash)
+	CreateNewTorrentKey(a.requestContext.redisClient, a.info_hash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a

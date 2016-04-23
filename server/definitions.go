@@ -2,6 +2,8 @@ package server
 
 import (
 	"gopkg.in/redis.v3"
+    "github.com/GrappigPanda/notorious/config"
+    "github.com/jinzhu/gorm"
 )
 
 const (
@@ -26,6 +28,15 @@ type announceData struct {
 	left        uint64        // # of bytes left to download (base 10 ascii)
 	numwant     uint64        // Number of peers requested by client.
 	compact     bool          // Bep23 peer list compression decision: True -> compress bep23
+    requestContext requestAppContext // The request-specific connections
+}
+
+// requestAppContext First of all naming things is the hardest part of
+// programming real talk. Second of all, this essentially houses
+// request-specific data like db connections and in the future the redisClient.
+// Things that should persist only within the duration of a request.
+type requestAppContext struct {
+    dbConn *gorm.DB
 	redisClient *redis.Client // The redis client connection handler to use.
 }
 
@@ -33,6 +44,7 @@ type scrapeData struct {
 	infoHash string
 }
 
+// scrapeResponse is the data associated with a returned scrape.
 type scrapeResponse struct {
 	complete   uint64
 	downloaded uint64
@@ -55,3 +67,9 @@ var ANNOUNCE_URL = "/announce"
 
 // TODO(ian): Set this expireTime to a config-loaded value.
 // expireTime := 5 * 60
+
+// applicationContext houses data necessary for the handler to properly
+// function as the application is desired.
+type applicationContext struct {
+    config config.ConfigStruct
+}
