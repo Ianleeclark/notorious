@@ -61,30 +61,30 @@ func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 }
 
 // RedisGetKeyVal Lookup a peer in the specified infohash at `key`
-func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []string {
+func RedisGetKeyVal(data *announceData, key string) []string {
 	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := client.SMembers(keymember).Result()
+	val, err := data.redisClient.SMembers(keymember).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(client, keymember)
+		CreateNewTorrentKey(data.redisClient, keymember)
 	}
 
 	return val
 }
 
 // RedisGetAllPeers fetches all peers from the info_hash at `key`
-func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string {
+func RedisGetAllPeers(data *announceData, key string) []string {
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := c.SRandMemberN(keymember, 30).Result()
+	val, err := data.redisClient.SRandMemberN(keymember, 30).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(c, keymember)
+		CreateNewTorrentKey(data.redisClient, keymember)
 	}
 
 	if len(val) == 30 {
@@ -93,7 +93,7 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 
 	keymember = concatenateKeyMember(key, "incomplete")
 
-	val2, err := c.SRandMemberN(keymember, int64(30 - len(val))).Result()
+	val2, err := data.redisClient.SRandMemberN(keymember, int64(30 - len(val))).Result()
 	if err != nil {
 		panic("Failed to get incomplete peers for")
 	} else {
@@ -120,7 +120,7 @@ func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int
 }
 
 // RedisGetBoolKeyVal Checks if a `key` exists
-func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
+func RedisGetBoolKeyVal(client *redis.Client, key string) bool {
 	ret, _ := client.Exists(key).Result()
 
 	return ret
@@ -128,7 +128,7 @@ func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) boo
 
 // RedisSetKeyIfNotExists Set a key if it doesn't exist.
 func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
-	rv = RedisGetBoolKeyVal(c, keymember, value)
+	rv = RedisGetBoolKeyVal(c, keymember)
 	if !rv {
 		RedisSetKeyVal(c, keymember, value)
 	}
@@ -150,6 +150,8 @@ func CreateNewTorrentKey(client *redis.Client, key string) {
 
 }
 
+// concatenateKeyMember concatenates the key and the member delimited by the
+// character ":"
 func concatenateKeyMember(key string, member string) string {
 	var buffer bytes.Buffer
 

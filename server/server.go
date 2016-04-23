@@ -10,8 +10,8 @@ import (
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
 func worker(data *announceData) []string {
-	if RedisGetBoolKeyVal(data.redisClient, data.info_hash, data) {
-		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
+	if RedisGetBoolKeyVal(data.redisClient, data.info_hash) {
+		x := RedisGetKeyVal(data, data.info_hash)
 
 		RedisSetIPMember(data)
 
@@ -48,7 +48,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	if data.event == "started" || data.event == "completed" {
 		worker(data)
-		x := RedisGetAllPeers(data.redisClient, data.info_hash, data)
+		x := RedisGetAllPeers(data, data.info_hash)
 
 		if len(x) > 0 {
 			w.Header().Set("Content-Type", "text/plain")
