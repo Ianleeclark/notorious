@@ -146,7 +146,7 @@ func (a *announceData) removeFromKVStorage(subkey string) {
 }
 
 func (a *announceData) infoHashExists() bool {
-	return RedisGetBoolKeyVal(a.redisClient, a.info_hash, a)
+	return RedisGetBoolKeyVal(a.redisClient, a.info_hash)
 }
 
 func (a *announceData) createInfoHashKey() {

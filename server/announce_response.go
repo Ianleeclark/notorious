@@ -70,8 +70,8 @@ func formatResponseData(ips []string, data *announceData) string {
 // string that we respond with.
 func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret := ""
-	completeCount := len(RedisGetKeyVal(data.redisClient, data.info_hash, data))
-	incompleteCount := len(RedisGetKeyVal(data.redisClient, data.info_hash, data))
+	completeCount := len(RedisGetKeyVal(data, data.info_hash))
+	incompleteCount := len(RedisGetKeyVal(data, data.info_hash))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))

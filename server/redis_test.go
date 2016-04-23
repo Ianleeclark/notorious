@@ -42,7 +42,7 @@ func TestRedisSetKeyVal(t *testing.T) {
 
 func TestRedisGetKeyVal(t *testing.T) {
     DATA.redisClient.SAdd("RedisGetKeyValTest:1024:complete", "1024")
-    ret := RedisGetKeyVal(DATA.redisClient, "RedisGetKeyValTest:1024", &DATA)
+    ret := RedisGetKeyVal(&DATA, "RedisGetKeyValTest:1024")
     expectedReturn := ">1"
 
     if len(ret) == 0 {
@@ -52,7 +52,7 @@ func TestRedisGetKeyVal(t *testing.T) {
 
 func TestRedisGetKeyValNoPreexistKey(t *testing.T) {
     DATA.redisClient.SAdd("RedisGetKeyValTest:1025", "1024")
-    ret := RedisGetKeyVal(DATA.redisClient, "RedisGetKeyValTest:1025", &DATA)
+    ret := RedisGetKeyVal(&DATA, "RedisGetKeyValTest:1025")
     expectedReturn := 0
 
     if len(ret) != expectedReturn {
@@ -126,7 +126,7 @@ func TestRedisGetBoolKeyVal(t *testing.T) {
     RedisSetKeyVal(DATA.redisClient, "TestRedisGetBoolKeyVal", "1024")
 
     expectedReturn := true
-    ret := RedisGetBoolKeyVal(DATA.redisClient, "TestRedisGetBoolKeyVal", "1024")
+    ret := RedisGetBoolKeyVal(DATA.redisClient, "TestRedisGetBoolKeyVal")
 
     if ret != expectedReturn {
         t.Fatalf("Expected %v, got %v", expectedReturn, ret)
@@ -177,7 +177,7 @@ func TestRedisGetAllPeers(t *testing.T) {
     DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1237")
     DATA.redisClient.SAdd("TestRedisGetAllPeers:complete", "1238")
 
-    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers", &DATA)
+    ret := RedisGetAllPeers(&DATA, "TestRedisGetAllPeers")
     x := len(ret)
 
     if x != 4 {
@@ -235,7 +235,7 @@ func TestRedisGetAllPeersValGT30(t *testing.T) {
     DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1234")
     DATA.redisClient.SAdd("TestRedisGetAllPeers1:complete", "1235")
 
-    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers1", &DATA)
+    ret := RedisGetAllPeers(&DATA, "TestRedisGetAllPeers1")
     x := len(ret)
 
     if x != 30 {
@@ -294,7 +294,7 @@ func TestRedisGetAllPeersValLT30(t *testing.T) {
     DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1234")
     DATA.redisClient.SAdd("TestRedisGetAllPeers2:incomplete", "1235")
 
-    ret := RedisGetAllPeers(DATA.redisClient, "TestRedisGetAllPeers2", &DATA)
+    ret := RedisGetAllPeers(&DATA, "TestRedisGetAllPeers2")
     x := len(ret)
 
     if x != 30 {
