@@ -105,8 +105,7 @@ func (a *announceData) StartedEventHandler() {
 
 // StoppedEventHandler Called upon announce whenever a client attempts to shut-down gracefully.
 // Ensures that the client is removed from complete/incomplete lists.
-
-// TODO(ian): This is what happend whenever the torrent client shuts down
+// TODO(ian): This is what happened whenever the torrent client shuts down
 // gracefully, so we need to call the mysql backend and store the info and
 // remove the ipport from completed/incomplete redis kvs
 func (a *announceData) StoppedEventHandler() {
