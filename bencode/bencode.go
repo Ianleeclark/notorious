@@ -1,6 +1,7 @@
 package bencode
 
 import (
+    "bytes"
 	"fmt"
 	"strings"
 	"unicode/utf8"
@@ -17,12 +18,12 @@ func EncodeList(items []string) string {
 	tmp := "l"
 	for i := range items {
 		if items[i][0] == 'l' || items[i][0] == 'd' {
-			tmp = fmt.Sprintf("%s%s", tmp, items[i])
+			tmp = writeStringData(tmp, items[i])
 		} else {
-			tmp = fmt.Sprintf("%s%s", tmp, EncodeByteString(items[i]))
+			tmp = writeStringData(tmp, EncodeByteString(items[i]))
 		}
 	}
-	tmp = fmt.Sprintf("%se", tmp)
+	tmp = writeStringData(tmp, "e")
 	return tmp
 }
 
@@ -78,5 +79,19 @@ func EncodeKV(key string, value string) string {
 	} else {
 		value = EncodeByteString(value)
 	}
-	return fmt.Sprintf("%s%s", key, value)
+	return writeStringData(key, value)
+}
+
+// writeStringData is used to concatenate two strings. This is a heavily used
+// function throughout the bencode section of the codebase. It's inherently
+// naive and I just want it to combine two strings. You'll se some places where
+// we use Sprintf still, but that's because I don't feel the need to adding
+// padding to this function.
+func writeStringData(val1 string, val2 string) string {
+    var buffer bytes.Buffer
+
+    buffer.WriteString(val1)
+    buffer.WriteString(val2)
+
+    return buffer.String()
 }
