@@ -7,7 +7,7 @@ import (
 // ConfigStruct holds the values that our config file holds
 type ConfigStruct struct {
 	MySQLHost string
-	MySQLPort string
+	MySQLPort int
 	MySQLUser string
 	MySQLPass string
 	MySQLDB   string
@@ -28,7 +28,7 @@ func LoadConfig() ConfigStruct {
 
 	return ConfigStruct{
 		viper.Get("MySQLHost").(string),
-		viper.Get("MySQLPort").(string),
+		viper.Get("MySQLPort").(int),
 		viper.Get("MySQLUser").(string),
 		viper.Get("MySQLPass").(string),
 		viper.Get("MySQLDB").(string),
