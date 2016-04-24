@@ -1,0 +1,5 @@
+MySQLHost: 127.0.0.1
+MySQLPort: 3306
+MySQLUser: root
+MySQLPass: test
+MySQLDB: test-db
