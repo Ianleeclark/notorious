@@ -10,8 +10,11 @@ before_script:
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover;
   fi
 - go get github.com/mattn/goveralls
+- go get github.com/modocache/gover
 script:
-- "$HOME/gopath/bin/goveralls -service=travis-ci"
+- go test ./...
+- gover
+- $HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=gover.coverprofile
 env:
   global:
     secure: u7ZQBv8tUlAJtsECqBLgVZ0heGb3++pWCMjMcvTmHuBytJmIxNxXa0ENV9ai/Jd8IHN6AzAzn5sC2G/pDyE6kYS89YXuwSjy/PSUq+sOmWPH63UY735klU0PS8OidWVQBpxXgPuSoRoWWSNIU8sQJg6Z9p3w6Q+q/VobokqpZKiAKt+IGuF7ci2fW1UrOKM/X77D8zD5MSDWzWJZ77miYIEU2ga1ZV+TyPq+3/b9h4vsROK0b8ykQfMyY1eWqPICQVJS/munae3pBcWc/CiVStqFQ68FTZRIUDjlCNW3+VP5YgmVj+iDd2zvlFhMAoG6rkEEAOVoQc3FgeQjDmIQUPaeZ4uTOvF8hhBIHR6BZHj61+fSoDorUhVek+BhXLHHlm4a2ubrlECz6NW4ObfyjFClxD1rdn5EAt4AEe2wTK84I3Drd+XRJ21JQGORIUFzBS35VjAFkr6CsLBbb1HboQAlcbaDbhUXPZYaO7lsifmXUT1X1cijMsmOaoVdYQ/K4gn1qv2M+3TjnJU16lh1r4EDUtQnj+EMDzCmUI34OSg+xWj5FDdCZnjcWyIvXHfLiQZnCsrjPLnsIEaOeJ/cMMO5F1JP/1rnZxzeQXrY3nWuU2usyuIUu/02C3BLE7AFkI/jXyc5qP+JSAVWcQ41Fzf2BPfm/8dN6FHbEWFfcjw=
