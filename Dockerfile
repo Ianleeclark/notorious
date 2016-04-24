@@ -17,6 +17,7 @@ RUN mkdir -p /var/log/supervisor
 
 # Move local files to the docker image
 ADD . /go/src/github.com/GrappigPanda/notorious
+ADD config.yaml /etc/config.yaml
 COPY build/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Install dependencies
