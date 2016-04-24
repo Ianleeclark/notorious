@@ -27,7 +27,7 @@ func worker(data *announceData) []string {
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
 	data := new(announceData)
     data.requestContext = requestAppContext{
-        dbConn: db.OpenConnection(),
+        dbConn: nil,
     }
 
 	err := data.parseAnnounceData(req)
