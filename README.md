@@ -4,9 +4,10 @@ Hello everybody! Notorious aims to be a highy extensible tracker implemented in 
 ```
 1. Ratio tracking using a SQL backend (I will be using an ORM layer so that most SQL DBs will be supported).
 2. "Complete" Ratioless tracking: no peer information is ever stored
-3. "Semi-Ratioless" tracking: user information is stored, but only what is import: grabs/seed life/&c.
-4. Automatic Redis docker deployment. I like docker and Redis is my peer-storage of choice and they work well together.
-5. Speed and scalability are always in the back of my mind, even if my decisions don't always reflect that
+3. "Semi-ratioless" tracking: we store just statistics information + "Complete" tracking info.
+4. "Normal" tracking: a unique key is assigned to a peer and we store seeds/leeches, downloaded bytes/uploaded bytes.
+5. Automatic Redis docker deployment. I like docker and Redis is my peer-storage of choice and they work well together.
+6. Speed and scalability are always in the back of my mind, even if my decisions don't always reflect that
 ```
 
 

@@ -1,33 +1,34 @@
 package bencode
 
 import (
+    "bytes"
 	"fmt"
 	"strings"
 	"unicode/utf8"
 )
 
+// EncodeInt encodes an int to a bencoded integer: "i<x>e"
 func EncodeInt(x int) string {
-	// Encode an an int to a bencoded integer: "i<x>e"
 	return fmt.Sprintf("i%de", x)
 }
 
+// EncodeList encodes a list of items (`items`) to a bencoded list:
+// "l<item1><item2><...><itemN>e"
 func EncodeList(items []string) string {
-	// Encode a list of items (`items`) to a bencoded list:
-	// "l<item1><item2><...><itemN>e"
 	tmp := "l"
 	for i := range items {
 		if items[i][0] == 'l' || items[i][0] == 'd' {
-			tmp = fmt.Sprintf("%s%s", tmp, items[i])
+			tmp = writeStringData(tmp, items[i])
 		} else {
-			tmp = fmt.Sprintf("%s%s", tmp, EncodeByteString(items[i]))
+			tmp = writeStringData(tmp, EncodeByteString(items[i]))
 		}
 	}
-	tmp = fmt.Sprintf("%se", tmp)
+	tmp = writeStringData(tmp, "e")
 	return tmp
 }
 
+// EncodeDictionary Takes a list of bencoded KVpairs and return a bencoded dictionary.
 func EncodeDictionary(kvpairs []string) (retdict string) {
-	// Take a list of bencoded KVpairs and return a bencoded dictionary.
 
 	retdict = "d"
 	for i := range kvpairs {
@@ -38,18 +39,17 @@ func EncodeDictionary(kvpairs []string) (retdict string) {
 	return
 }
 
+// EncodeByteString Encodes a string to <key length>:<key>
 func EncodeByteString(key string) string {
-	// Encode a string to <key length>:<key>
 	return fmt.Sprintf("%d:%s", utf8.RuneCountInString(key), key)
 }
 
+// EncodePeerList Handles peer list creation for non-compact responses. Mostly deprecated
+// for most torrent clients nowadays as compact is the default. Returns a
+// bencoded list of bencoded dictionaries containing "peer id", "ip",
+// "port": "ld7:peer id20:<peer id>2:ip9:<127.0.0.1>4:port4:7878ee"
+// peers contains a ip:port
 func EncodePeerList(peers []string) (retlist string) {
-	// Handles peer list creation for non-compact responses. Mostly deprecated
-	// for most torrent clients nowadays as compact is the default. Returns a
-	// bencoded list of bencoded dictionaries containing "peer id", "ip",
-	// "port": "ld7:peer id20:<peer id>2:ip9:<127.0.0.1>4:port4:7878ee"
-	// peers contains a ip:port
-
 	var tmpDict []string
 
 	for i := range peers {
@@ -71,6 +71,7 @@ func EncodePeerList(peers []string) (retlist string) {
 	return
 }
 
+// EncodeKV Encodes a KV pair into a string
 func EncodeKV(key string, value string) string {
 	key = EncodeByteString(key)
 	if value[0] == 'i' || value[0] == 'l' || value[0] == 'd' {
@@ -78,5 +79,19 @@ func EncodeKV(key string, value string) string {
 	} else {
 		value = EncodeByteString(value)
 	}
-	return fmt.Sprintf("%s%s", key, value)
+	return writeStringData(key, value)
+}
+
+// writeStringData is used to concatenate two strings. This is a heavily used
+// function throughout the bencode section of the codebase. It's inherently
+// naive and I just want it to combine two strings. You'll se some places where
+// we use Sprintf still, but that's because I don't feel the need to adding
+// padding to this function.
+func writeStringData(val1 string, val2 string) string {
+    var buffer bytes.Buffer
+
+    buffer.WriteString(val1)
+    buffer.WriteString(val2)
+
+    return buffer.String()
 }

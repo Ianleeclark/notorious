@@ -8,8 +8,11 @@ import (
 	"time"
 )
 
+// EXPIRETIME signifies how long a peer will live under the specified info_hash
+// until the reaper removes it.
 var EXPIRETIME int64 = 5 * 60
 
+// OpenClient opens a connection to redis.
 func OpenClient() (client *redis.Client) {
 	client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
@@ -20,8 +23,9 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
+// RedisSetIPMember sets a key as a member of an infohash and sets a timeout.
 func RedisSetIPMember(data *announceData) (retval int) {
-	c := data.redisClient
+	c := data.requestContext.redisClient
 
 	keymember := concatenateKeyMember(data.info_hash, "ip")
 
@@ -40,6 +44,8 @@ func RedisSetIPMember(data *announceData) (retval int) {
 	return
 }
 
+// RedisSetKeyVal Sets a key to the specified value. Used mostly with adding a
+// peer into an info_hash
 func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
@@ -54,34 +60,40 @@ func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	}
 }
 
-func RedisGetKeyVal(client *redis.Client, key string, value *announceData) []string {
+// RedisGetKeyVal Lookup a peer in the specified infohash at `key`
+func RedisGetKeyVal(data *announceData, key string) []string {
 	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
 	// provided key. If the key does not yet exist, we create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := client.SMembers(keymember).Result()
+	val, err := data.requestContext.redisClient.SMembers(keymember).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(client, keymember)
+		CreateNewTorrentKey(data.requestContext.redisClient, keymember)
 	}
 
 	return val
 }
 
-func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string {
+// RedisGetAllPeers fetches all peers from the info_hash at `key`
+func RedisGetAllPeers(data *announceData, key string) []string {
 	keymember := concatenateKeyMember(key, "complete")
 
-	val, err := c.SMembers(keymember).Result()
+	val, err := data.requestContext.redisClient.SRandMemberN(keymember, 30).Result()
 	if err != nil {
 		// Fail because the key doesn't exist in the KV storage.
-		CreateNewTorrentKey(c, keymember)
+		CreateNewTorrentKey(data.requestContext.redisClient, keymember)
+	}
+
+	if len(val) == 30 {
+		return val
 	}
 
 	keymember = concatenateKeyMember(key, "incomplete")
 
-	val2, err := c.SMembers(keymember).Result()
+	val2, err := data.requestContext.redisClient.SRandMemberN(keymember, int64(30 - len(val))).Result()
 	if err != nil {
 		panic("Failed to get incomplete peers for")
 	} else {
@@ -91,49 +103,55 @@ func RedisGetAllPeers(c *redis.Client, key string, data *announceData) []string 
 	return val
 }
 
-func RedisGetCount(c *redis.Client, info_hash string, member string) (retval []string, err error) {
+// RedisGetCount counts all of the peers at `info_hash`
+func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int, err error) {
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.
 	keymember := concatenateKeyMember(info_hash, member)
 
-	retval, err = c.SMembers(keymember).Result()
+    x, err := c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
 		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
 	}
 
+    retval = len(x)
 	return
 }
 
-func RedisGetBoolKeyVal(client *redis.Client, key string, value interface{}) bool {
-	_, err := client.Get(key).Result()
+// RedisGetBoolKeyVal Checks if a `key` exists
+func RedisGetBoolKeyVal(client *redis.Client, key string) bool {
+	ret, _ := client.Exists(key).Result()
 
-	return err != nil
+	return ret
 }
 
+// RedisSetKeyIfNotExists Set a key if it doesn't exist.
 func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
-	rv = RedisGetBoolKeyVal(c, keymember, value)
+	rv = RedisGetBoolKeyVal(c, keymember)
 	if !rv {
 		RedisSetKeyVal(c, keymember, value)
 	}
 	return
 }
 
+// RedisRemoveKeysValue Remove a `value` from `key` in the redis kv storage. `key` is typically
+// a keymember of info_hash:(in)complete and the value is typically the
+// ip:port concatenated.
 func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
-	// Remove a `value` from `key` in the redis kv storage. `key` is typically
-	// a keymember of info_hash:(in)complete and the value is typically the
-	// ip:port concatenated.
 	c.SRem(key, value)
 }
 
+// CreateNewTorrentKey creates a new key. By default, it adds a member
+// ":ip". I don't think this ought to ever be generalized, as I just want
+// Redis to function in one specific way in notorious.
 func CreateNewTorrentKey(client *redis.Client, key string) {
-	// CreateNewTorrentKey creates a new key. By default, it adds a member
-	// ":ip". I don't think this ought to ever be generalized, as I just want
-	// Redis to function in one specific way in notorious.
 	client.SAdd(key, "complete", "incomplete")
 
 }
 
+// concatenateKeyMember concatenates the key and the member delimited by the
+// character ":"
 func concatenateKeyMember(key string, member string) string {
 	var buffer bytes.Buffer
 
@@ -144,8 +162,8 @@ func concatenateKeyMember(key string, member string) string {
 	return buffer.String()
 }
 
+// createIPPortPair creates a string formatted ("%s:%s", value.ip,
+// value.port) looking like so: "127.0.0.1:6886" and returns this value.
 func createIPPortPair(value *announceData) string {
-	// createIPPortPair creates a string formatted ("%s:%s", value.ip,
-	// value.port) looking like so: "127.0.0.1:6886" and returns this value.
-	return fmt.Sprintf("%s:%s", value.ip, value.port)
+	return fmt.Sprintf("%v:%v", value.ip, value.port)
 }

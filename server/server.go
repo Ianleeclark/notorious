@@ -3,27 +3,33 @@ package server
 import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/database"
+    "github.com/GrappigPanda/notorious/config"
 	"net/http"
 )
 
+// FIELDS The fields that we expect from a peer upon info hash lookup
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
 func worker(data *announceData) []string {
-	if RedisGetBoolKeyVal(data.redisClient, data.info_hash, data) {
-		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
+	if RedisGetBoolKeyVal(data.requestContext.redisClient, data.info_hash) {
+		x := RedisGetKeyVal(data, data.info_hash)
 
 		RedisSetIPMember(data)
 
 		return x
 
-	} else {
-		CreateNewTorrentKey(data.redisClient, data.info_hash)
-		return worker(data)
 	}
+
+	CreateNewTorrentKey(data.requestContext.redisClient, data.info_hash)
+	return worker(data)
 }
 
-func requestHandler(w http.ResponseWriter, req *http.Request) {
+func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
 	data := new(announceData)
+    data.requestContext = requestAppContext{
+        dbConn: db.OpenConnection(),
+    }
+
 	err := data.parseAnnounceData(req)
 	if err != nil {
 		panic(err)
@@ -32,7 +38,6 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 	fmt.Printf("Event: %s from host %s on port %v\n", data.event, data.ip, data.port)
 
 	switch data.event {
-
 	case "started":
 		data.StartedEventHandler()
 
@@ -47,15 +52,7 @@ func requestHandler(w http.ResponseWriter, req *http.Request) {
 
 	if data.event == "started" || data.event == "completed" {
 		worker(data)
-		x := RedisGetKeyVal(data.redisClient, data.info_hash, data)
-		// TODO(ian): Move this into a seperate function.
-		// TODO(ian): Remove this magic number and use data.numwant, but limit it
-		// to 30 max, as that's the bittorrent protocol suggested limit.
-		if len(x) >= 30 {
-			x = x[0:30]
-		} else {
-			x = x[0:]
-		}
+		x := RedisGetAllPeers(data, data.info_hash)
 
 		if len(x) > 0 {
 			w.Header().Set("Content-Type", "text/plain")
@@ -78,10 +75,15 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
 	return data
 }
 
+// RunServer spins up the server and muxes the url
 func RunServer() {
+    app := applicationContext{
+        config: config.LoadConfig(),
+    }
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/announce", requestHandler)
+	mux.HandleFunc("/announce", app.requestHandler)
 	//mux.HandleFunc("/scrape", scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }

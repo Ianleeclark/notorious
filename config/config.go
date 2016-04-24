@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/NotoriousTracker/viper"
+	"github.com/spf13/viper"
 )
 
+// ConfigStruct holds the values that our config file holds
 type ConfigStruct struct {
 	MySQLHost string
 	MySQLPort string
@@ -12,6 +13,8 @@ type ConfigStruct struct {
 	MySQLDB   string
 }
 
+// LoadConfig loads the config into the Config Struct and returns the
+// ConfigStruct object
 func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")

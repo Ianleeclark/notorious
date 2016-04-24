@@ -56,11 +56,12 @@ func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
 		a.event = "started"
 	}
 
-	a.redisClient = OpenClient()
+	a.requestContext.redisClient = OpenClient()
 
 	return
 }
 
+// GetInt converts the `key` from url.Values to a uint64
 func GetInt(u url.Values, key string) (ui uint64, err error) {
 	if x := u.Get(key); x == "" {
 		err = fmt.Errorf("Failed to locate the key in the url.")
@@ -75,82 +76,85 @@ func GetInt(u url.Values, key string) (ui uint64, err error) {
 	return
 }
 
-func (data *announceData) StartedEventHandler() {
+// StartedEventHandler handles whenever a peer sends the STARTED event to the
+// tracker.
+func (a *announceData) StartedEventHandler() {
 	// Called upon announce when a client starts a download or creates a new
 	// torrent on the tracker. Adds a user to incomplete list in redis.
 
-	if !data.infoHashExists() {
-		data.createInfoHashKey()
+	if !a.infoHashExists() {
+		a.createInfoHashKey()
 	}
 
 	keymember := ""
 	ipport := ""
 
-	if !(data.left == 0) {
-		keymember = fmt.Sprintf("%s:incomplete", data.info_hash)
-		ipport = fmt.Sprintf("%s:%d", data.ip, data.port)
+	if !(a.left == 0) {
+		keymember = fmt.Sprintf("%s:incomplete", a.info_hash)
+		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
 	} else {
-		keymember = fmt.Sprintf("%s:complete", data.info_hash)
-		ipport = fmt.Sprintf("%s:%d", data.ip, data.port)
+		keymember = fmt.Sprintf("%s:complete", a.info_hash)
+		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
 	}
 
-	RedisSetKeyVal(data.redisClient, keymember, ipport)
-	if RedisSetKeyIfNotExists(data.redisClient, keymember, ipport) {
+	RedisSetKeyVal(a.requestContext.redisClient, keymember, ipport)
+	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 }
 
-func (data *announceData) StoppedEventHandler() {
-	// Called upon announce whenever a client attempts to shut-down gracefully.
-	// Ensures that the client is removed from complete/incomplete lists.
+// StoppedEventHandler Called upon announce whenever a client attempts to shut-down gracefully.
+// Ensures that the client is removed from complete/incomplete lists.
+// TODO(ian): This is what happened whenever the torrent client shuts down
+// gracefully, so we need to call the mysql backend and store the info and
+// remove the ipport from completed/incomplete redis kvs
+func (a *announceData) StoppedEventHandler() {
 
-	// TODO(ian): This is what happend whenever the torrent client shuts down
-	// gracefully, so we need to call the mysql backend and store the info and
-	// remove the ipport from completed/incomplete redis kvs
-
-	if data.infoHashExists() {
-		data.removeFromKVStorage(data.event)
+	if a.infoHashExists() {
+		a.removeFromKVStorage(a.event)
 	} else {
 		return
 	}
 }
 
-func (data *announceData) CompletedEventHandler() {
-	// Called upon announce when a client finishes a download. Removes the
-	// client from incomplete in redis and places their peer info into
-	// complete.
+// CompletedEventHandler Called upon announce when a client finishes a download. Removes the
+// client from incomplete in redis and places their peer info into
+// complete.
+func (a *announceData) CompletedEventHandler() {
 
-	if !data.infoHashExists() {
-		data.createInfoHashKey()
+	if !a.infoHashExists() {
+		a.createInfoHashKey()
 	} else {
-		data.removeFromKVStorage("incomplete")
+		a.removeFromKVStorage("incomplete")
 	}
 
-	keymember := fmt.Sprintf("%s:complete", data.info_hash)
+	keymember := fmt.Sprintf("%s:complete", a.info_hash)
 	// TODO(ian): DRY!
-	ipport := fmt.Sprintf("%s:%s", data.ip, data.port)
-	if RedisSetKeyIfNotExists(data.redisClient, keymember, ipport) {
-		fmt.Printf("Adding host %s to %s:complete\n", ipport, data.info_hash)
+	ipport := fmt.Sprintf("%s:%s", a.ip, a.port)
+	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
+		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.info_hash)
 	}
 }
 
-func (data *announceData) removeFromKVStorage(subkey string) {
+func (a *announceData) removeFromKVStorage(subkey string) {
 	// Remove the subkey from the kv storage.
-	ipport := fmt.Sprintf("%s:%d", data.ip, data.port)
-	keymember := fmt.Sprintf("%s:%s", data.info_hash, subkey)
+	ipport := fmt.Sprintf("%s:%d", a.ip, a.port)
+	keymember := fmt.Sprintf("%s:%s", a.info_hash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	RedisRemoveKeysValue(data.redisClient, keymember, ipport)
+	RedisRemoveKeysValue(a.requestContext.redisClient, keymember, ipport)
 }
 
-func (data *announceData) infoHashExists() bool {
-	return RedisGetBoolKeyVal(data.redisClient, data.info_hash, data)
+func (a *announceData) infoHashExists() bool {
+	return RedisGetBoolKeyVal(a.requestContext.redisClient, a.info_hash)
 }
 
-func (data *announceData) createInfoHashKey() {
-	CreateNewTorrentKey(data.redisClient, data.info_hash)
+func (a *announceData) createInfoHashKey() {
+	CreateNewTorrentKey(a.requestContext.redisClient, a.info_hash)
 }
 
+// ParseInfoHash parses the encoded info hash. Such a simple solution for a
+// problem I hate more than koalas.
 func ParseInfoHash(s string) string {
 	return fmt.Sprintf("%x", s)
 }
