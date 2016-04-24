@@ -3,3 +3,5 @@ MySQLPort: 3306
 MySQLUser: root
 MySQLPass: test
 MySQLDB: test-db
+RedisServer: localhost
+RedisPort: 6379
