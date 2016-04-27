@@ -13,6 +13,6 @@ func main() {
 		panic("No Redis instance detected. If deploying without Docker, install redis-server")
 	}
 
-	go reaper.StartReapingScheduler(1 * time.Minute)
+	go reaper.StartReapingScheduler(5 * time.Minute)
 	server.RunServer()
 }
