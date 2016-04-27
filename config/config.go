@@ -19,6 +19,7 @@ func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
+    viper.AddConfigPath("../")
 
 	err := viper.ReadInConfig()
 	if err != nil {
