@@ -1,13 +1,16 @@
 language: go
 
 sudo: false
-services: redis
+services: 
+  - redis
+  - mysql
 
 go:
   - 1.5
   - 1.6
   
 before_script:
+  - mysql -e 'create database test-db;'
   - go get ./...
   - go get gopkg.in/redis.v3
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi

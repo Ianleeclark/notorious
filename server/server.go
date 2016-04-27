@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"github.com/GrappigPanda/notorious/database"
     "github.com/GrappigPanda/notorious/config"
 	"net/http"
 )
@@ -68,11 +67,12 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 }
 
 func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
-	query := req.URL.Query()
-	infoHash := ParseInfoHash(query.Get("info_hash"))
+	//query := req.URL.Query()
+	//infoHash := ParseInfoHash(query.Get("info_hash"))
 
-	data := db.ScrapeTorrent(db.OpenConnection(), infoHash)
-	return data
+	//data := db.ScrapeTorrent(db.OpenConnection(), infoHash)
+	//return data
+    return "TODO"
 }
 
 // RunServer spins up the server and muxes the url

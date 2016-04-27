@@ -20,15 +20,38 @@ func formatConnectString(c config.ConfigStruct) string {
 
 // OpenConnection does as its name dictates and opens a connection to the
 // MysqlHost listed in the config
-func OpenConnection() *gorm.DB {
+func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
 
-	db, err := gorm.Open("mysql", formatConnectString(c))
+	db, err = gorm.Open("mysql", formatConnectString(c))
 	if err != nil {
-		panic(err)
+        err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
-	return db
+	return
+}
+
+func (t *Torrent) AddWhitelistedTorrent() {
+    db, err := OpenConnection()
+    if err != nil {
+        err = err
+    }
+
+    db.Create(t)
+
+    return
+}
+
+func GetTorrent(infoHash string) (t *Torrent, err error) {
+    db, err := OpenConnection()
+    if err != nil {
+        err = err
+    }
+    t = &Torrent{}
+
+    db.Where("infoHash = ?", infoHash).First(&t)
+
+    return
 }
 
 // ScrapeTorrent supports the Scrape convention
