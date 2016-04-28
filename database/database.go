@@ -23,7 +23,7 @@ func formatConnectString(c config.ConfigStruct) string {
 func OpenConnection() (db *gorm.DB, err error) {
 	//c := config.LoadConfig()
 
-    db, err = gorm.Open("mysql", "localhost:3306")
+    db, err = gorm.Open("mysql", "localhost:3306/testdb")
 	if err != nil {
         err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
