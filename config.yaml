@@ -1,7 +1,7 @@
 MySQLHost: localhost
 MySQLPort: 3306
-MySQLUser: root
-MySQLPass: root
+MySQLUser: testuser
+MySQLPass: testuser 
 MySQLDB: testdb
 RedisServer: localhost
 RedisPort: 6379
