@@ -21,9 +21,9 @@ func formatConnectString(c config.ConfigStruct) string {
 // OpenConnection does as its name dictates and opens a connection to the
 // MysqlHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
-	c := config.LoadConfig()
+	//c := config.LoadConfig()
 
-	db, err = gorm.Open("mysql", formatConnectString(c))
+    db, err = gorm.Open("mysql", "localhost:3306")
 	if err != nil {
         err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
