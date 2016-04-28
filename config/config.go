@@ -26,11 +26,22 @@ func LoadConfig() ConfigStruct {
 		panic("Failed to open config file")
 	}
 
-	return ConfigStruct{
-		viper.Get("MySQLHost").(string),
-		viper.Get("MySQLPort").(int),
-		viper.Get("MySQLUser").(string),
-		viper.Get("MySQLPass").(string),
-		viper.Get("MySQLDB").(string),
-	}
+    if(viper.GetBool("MySQLPass")) {
+        return ConfigStruct{
+            viper.Get("MySQLHost").(string),
+            viper.Get("MySQLPort").(int),
+            viper.Get("MySQLUser").(string),
+            viper.Get("MySQLPass").(string),
+            viper.Get("MySQLDB").(string),
+        }
+    } else {
+        return ConfigStruct{
+            viper.Get("MySQLHost").(string),
+            viper.Get("MySQLPort").(int),
+            viper.Get("MySQLUser").(string),
+            "",
+            viper.Get("MySQLDB").(string),
+        }
+    }
+
 }
