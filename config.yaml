@@ -1,4 +1,4 @@
-MySQLHost: 127.0.0.1
+MySQLHost: localhost
 MySQLPort: 3306
 MySQLUser: testuser
 MySQLPass: testuser
