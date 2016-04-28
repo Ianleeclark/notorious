@@ -9,11 +9,14 @@ import (
 
 )
 
+// formatConnectStrings concatenates the data from the config file into a
+// usable MySQL connection string.
 func formatConnectString(c config.ConfigStruct) string {
-	return fmt.Sprintf("%s:%s@%s/%s",
+    return fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?parseTime=true",
 		c.MySQLUser,
 		c.MySQLPass,
 		c.MySQLHost,
+        c.MySQLPort,
 		c.MySQLDB,
 	)
 }
@@ -21,25 +24,33 @@ func formatConnectString(c config.ConfigStruct) string {
 // OpenConnection does as its name dictates and opens a connection to the
 // MysqlHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
-	//c := config.LoadConfig()
+	c := config.LoadConfig()
 
-    db, err = gorm.Open("mysql", "root:@tcp(localhost:3306)/testdb")
+    db, err = gorm.Open("mysql", formatConnectString(c))
 	if err != nil {
         err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
+    InitDB(db)
+
 	return
 }
 
-func (t *Torrent) AddWhitelistedTorrent() {
+// InitDB initializes database tables.
+func InitDB(db *gorm.DB) {
+    db.CreateTable(&Torrent{})
+}
+
+// AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
+// used by the tracker in the future.
+func (t *Torrent) AddWhitelistedTorrent() bool {
     db, err := OpenConnection()
     if err != nil {
         err = err
     }
 
     db.Create(t)
-
-    return
+    return db.NewRecord(t)
 }
 
 func GetTorrent(infoHash string) (t *Torrent, err error) {
@@ -49,7 +60,7 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
     }
     t = &Torrent{}
 
-    db.Where("infoHash = ?", infoHash).First(&t)
+    db.Where("info_hash = ?", infoHash).First(&t)
 
     return
 }
@@ -57,6 +68,6 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
 	var torrent Torrent
-    // TODO(ian): FInish this.
+    // TODO(ian): Finish this.
 	return db.Where("infoHash = ?", infoHash).Find(&torrent).Value
 }
