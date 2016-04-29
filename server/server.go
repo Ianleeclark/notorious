@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-    "github.com/GrappigPanda/notorious/config"
+	"github.com/GrappigPanda/notorious/config"
 	"net/http"
 )
 
@@ -25,9 +25,9 @@ func worker(data *announceData) []string {
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
 	data := new(announceData)
-    data.requestContext = requestAppContext{
-        dbConn: nil,
-    }
+	data.requestContext = requestAppContext{
+		dbConn: nil,
+	}
 
 	err := data.parseAnnounceData(req)
 	if err != nil {
@@ -38,8 +38,10 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 
 	switch data.event {
 	case "started":
-		data.StartedEventHandler()
-
+		err := data.StartedEventHandler()
+		if err != nil {
+			// TODO(ian): Write an error to the end-user
+		}
 	case "stopped":
 		data.StoppedEventHandler()
 
@@ -72,14 +74,14 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
 
 	//data := db.ScrapeTorrent(db.OpenConnection(), infoHash)
 	//return data
-    return "TODO"
+	return "TODO"
 }
 
 // RunServer spins up the server and muxes the url
 func RunServer() {
-    app := applicationContext{
-        config: config.LoadConfig(),
-    }
+	app := applicationContext{
+		config: config.LoadConfig(),
+	}
 
 	mux := http.NewServeMux()
 

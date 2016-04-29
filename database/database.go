@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
-    // We use a blank import here because I'm afraid of breaking anything
+	// We use a blank import here because I'm afraid of breaking anything
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-
 )
 
 // formatConnectStrings concatenates the data from the config file into a
 // usable MySQL connection string.
 func formatConnectString(c config.ConfigStruct) string {
-    return fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?parseTime=true",
+	return fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?parseTime=true",
 		c.MySQLUser,
 		c.MySQLPass,
 		c.MySQLHost,
-        c.MySQLPort,
+		c.MySQLPort,
 		c.MySQLDB,
 	)
 }
@@ -26,48 +25,59 @@ func formatConnectString(c config.ConfigStruct) string {
 func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
 
-    db, err = gorm.Open("mysql", formatConnectString(c))
+	db, err = gorm.Open("mysql", formatConnectString(c))
 	if err != nil {
-        err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
+		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
-    InitDB(db)
+	InitDB(db)
 
 	return
 }
 
 // InitDB initializes database tables.
 func InitDB(db *gorm.DB) {
-    db.CreateTable(&Torrent{})
+	db.CreateTable(&Torrent{})
 }
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
 // used by the tracker in the future.
 func (t *Torrent) AddWhitelistedTorrent() bool {
-    db, err := OpenConnection()
-    if err != nil {
-        err = err
-    }
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
 
-    db.Create(t)
-    return db.NewRecord(t)
+	db.Create(t)
+	return db.NewRecord(t)
 }
 
 func GetTorrent(infoHash string) (t *Torrent, err error) {
-    db, err := OpenConnection()
-    if err != nil {
-        err = err
-    }
-    t = &Torrent{}
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+	t = &Torrent{}
 
-    db.Where("info_hash = ?", infoHash).First(&t)
+	db.Where("info_hash = ?", infoHash).First(&t)
 
-    return
+	return
+}
+
+func GetWhitelistedTorrent(infoHash string) (t *WhiteTorrent, err error) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+	t = &WhiteTorrent{}
+
+	db.Where("info_hash = ?", infoHash).First(&t)
+
+	return
 }
 
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
 	var torrent Torrent
-    // TODO(ian): Finish this.
-	return db.Where("infoHash = ?", infoHash).Find(&torrent).Value
+	return db.Where("infoHash = ?", infoHash).First(&torrent)
 }
