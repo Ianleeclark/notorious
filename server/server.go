@@ -40,7 +40,10 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	case "started":
 		err := data.StartedEventHandler()
 		if err != nil {
-			// TODO(ian): Write an error to the end-user
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte(createFailureMessage(err.Error())))
+
+			return
 		}
 	case "stopped":
 		data.StoppedEventHandler()
