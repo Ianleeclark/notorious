@@ -11,6 +11,7 @@ type ConfigStruct struct {
 	MySQLUser string
 	MySQLPass string
 	MySQLDB   string
+	Whitelist bool
 }
 
 // LoadConfig loads the config into the Config Struct and returns the
@@ -19,7 +20,7 @@ func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-    viper.AddConfigPath("../")
+	viper.AddConfigPath("../")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -33,6 +34,7 @@ func LoadConfig() ConfigStruct {
             viper.Get("MySQLUser").(string),
             viper.Get("MySQLPass").(string),
             viper.Get("MySQLDB").(string),
+	    viper.Get("Whitelist").(bool),
         }
     } else {
         return ConfigStruct{
@@ -41,6 +43,7 @@ func LoadConfig() ConfigStruct {
             viper.Get("MySQLUser").(string),
             "",
             viper.Get("MySQLDB").(string),
+	    viper.Get("Whitelist").(bool),
         }
     }
 

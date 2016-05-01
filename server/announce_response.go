@@ -37,8 +37,7 @@ func compactIPPort(b *bytes.Buffer, ip string, port string) (err error) {
 		err = fmt.Errorf("Failed to format port (%s) as an integer.", port)
 		return
 	}
-	// All credit to whatcd's ocelot tracker. I'm too dumb to figure this out
-	// on my own.
+
 	portCompact := []byte{byte(portInt >> 8), byte(portInt)}
 	b.Write(portCompact)
 
