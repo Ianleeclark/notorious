@@ -85,6 +85,8 @@ func (a *announceData) StartedEventHandler() (err error) {
 	// torrent on the tracker. Adds a user to incomplete list in redis.
 	err = nil
 
+    fmt.Println(a.infoHashExists())
+    fmt.Println(a.requestContext)
 	if !a.infoHashExists() && a.requestContext.whitelist {
 		_, err := db.GetWhitelistedTorrent(a.info_hash)
 		if err != nil {

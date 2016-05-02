@@ -14,7 +14,7 @@ var CONTEXT = requestAppContext{
 }
 
 var ANNOUNCEDATA = &announceData{
-	info_hash:      "12345123451234512345",
+	info_hash:      "54321543215432154321",
 	peer_id:        "11111111111111111111",
 	ip:             "127.0.0.1",
 	event:          "STARTED",
