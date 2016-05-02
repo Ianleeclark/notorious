@@ -85,13 +85,15 @@ func (a *announceData) StartedEventHandler() (err error) {
 	// torrent on the tracker. Adds a user to incomplete list in redis.
 	err = nil
 
-    fmt.Println(a.infoHashExists())
-    fmt.Println(a.requestContext)
+    fmt.Println("test0")
 	if !a.infoHashExists() && a.requestContext.whitelist {
+        fmt.Println("test1")
 		_, err := db.GetWhitelistedTorrent(a.info_hash)
 		if err != nil {
+            fmt.Println("test2")
 			return errors.New(fmt.Sprintf("Info hash %s not authorized for use", a.info_hash))
 		}
+        fmt.Println("test3")
 	} else if !a.infoHashExists() && !a.requestContext.whitelist {
 		// If the info hash isn't in redis and we're not whitelisting, add it
 		// to Redis.
