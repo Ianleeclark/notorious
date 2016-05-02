@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"github.com/GrappigPanda/notorious/database"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -78,11 +80,19 @@ func GetInt(u url.Values, key string) (ui uint64, err error) {
 
 // StartedEventHandler handles whenever a peer sends the STARTED event to the
 // tracker.
-func (a *announceData) StartedEventHandler() {
+func (a *announceData) StartedEventHandler() (err error) {
 	// Called upon announce when a client starts a download or creates a new
 	// torrent on the tracker. Adds a user to incomplete list in redis.
+	err = nil
 
-	if !a.infoHashExists() {
+	if !a.infoHashExists() && a.requestContext.whitelist {
+		_, err := db.GetWhitelistedTorrent(a.info_hash)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Info hash %s not authorized for use", a.info_hash))
+		}
+	} else if !a.infoHashExists() && !a.requestContext.whitelist {
+		// If the info hash isn't in redis and we're not whitelisting, add it
+		// to Redis.
 		a.createInfoHashKey()
 	}
 
@@ -101,6 +111,8 @@ func (a *announceData) StartedEventHandler() {
 	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
+
+	return
 }
 
 // StoppedEventHandler Called upon announce whenever a client attempts to shut-down gracefully.

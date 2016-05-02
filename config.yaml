@@ -1,7 +1,8 @@
-MySQLHost: 127.0.0.1
+MySQLHost: localhost
 MySQLPort: 3306
-MySQLUser: root
-MySQLPass: test
-MySQLDB: test-db
+MySQLUser: testuser
+MySQLPass: testuser 
+MySQLDB: testdb
 RedisServer: localhost
 RedisPort: 6379
+Whitelist: true

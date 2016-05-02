@@ -11,6 +11,7 @@ type ConfigStruct struct {
 	MySQLUser string
 	MySQLPass string
 	MySQLDB   string
+	Whitelist bool
 }
 
 // LoadConfig loads the config into the Config Struct and returns the
@@ -19,18 +20,31 @@ func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-    viper.AddConfigPath("../")
+	viper.AddConfigPath("../")
 
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic("Failed to open config file")
 	}
 
-	return ConfigStruct{
-		viper.Get("MySQLHost").(string),
-		viper.Get("MySQLPort").(int),
-		viper.Get("MySQLUser").(string),
-		viper.Get("MySQLPass").(string),
-		viper.Get("MySQLDB").(string),
+	if viper.Get("MySQLPass").(string) != "" {
+		return ConfigStruct{
+			viper.Get("MySQLHost").(string),
+			viper.Get("MySQLPort").(int),
+			viper.Get("MySQLUser").(string),
+			viper.Get("MySQLPass").(string),
+			viper.Get("MySQLDB").(string),
+			viper.Get("Whitelist").(bool),
+		}
+	} else {
+		return ConfigStruct{
+			viper.Get("MySQLHost").(string),
+			viper.Get("MySQLPort").(int),
+			viper.Get("MySQLUser").(string),
+			"",
+			viper.Get("MySQLDB").(string),
+			viper.GetBool("Whitelist"),
+		}
 	}
+
 }
