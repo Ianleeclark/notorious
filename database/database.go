@@ -38,6 +38,7 @@ func OpenConnection() (db *gorm.DB, err error) {
 // InitDB initializes database tables.
 func InitDB(db *gorm.DB) {
 	db.CreateTable(&Torrent{})
+    db.CreateTable(&White_Torrent{})
 }
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
