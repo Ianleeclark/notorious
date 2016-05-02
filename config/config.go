@@ -27,24 +27,24 @@ func LoadConfig() ConfigStruct {
 		panic("Failed to open config file")
 	}
 
-    if(viper.Get("MySQLPass").(string) != "") {
-        return ConfigStruct{
-            viper.Get("MySQLHost").(string),
-            viper.Get("MySQLPort").(int),
-            viper.Get("MySQLUser").(string),
-            viper.Get("MySQLPass").(string),
-            viper.Get("MySQLDB").(string),
-	    viper.Get("Whitelist").(bool),
-        }
-    } else {
-        return ConfigStruct{
-            viper.Get("MySQLHost").(string),
-            viper.Get("MySQLPort").(int),
-            viper.Get("MySQLUser").(string),
-            "",
-            viper.Get("MySQLDB").(string),
-	    viper.Get("Whitelist").(bool),
-        }
-    }
+	if viper.Get("MySQLPass").(string) != "" {
+		return ConfigStruct{
+			viper.Get("MySQLHost").(string),
+			viper.Get("MySQLPort").(int),
+			viper.Get("MySQLUser").(string),
+			viper.Get("MySQLPass").(string),
+			viper.Get("MySQLDB").(string),
+			viper.Get("Whitelist").(bool),
+		}
+	} else {
+		return ConfigStruct{
+			viper.Get("MySQLHost").(string),
+			viper.Get("MySQLPort").(int),
+			viper.Get("MySQLUser").(string),
+			"",
+			viper.Get("MySQLDB").(string),
+			viper.GetBool("Whitelist"),
+		}
+	}
 
 }

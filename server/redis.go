@@ -93,7 +93,7 @@ func RedisGetAllPeers(data *announceData, key string) []string {
 
 	keymember = concatenateKeyMember(key, "incomplete")
 
-	val2, err := data.requestContext.redisClient.SRandMemberN(keymember, int64(30 - len(val))).Result()
+	val2, err := data.requestContext.redisClient.SRandMemberN(keymember, int64(30-len(val))).Result()
 	if err != nil {
 		panic("Failed to get incomplete peers for")
 	} else {
@@ -109,13 +109,13 @@ func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int
 	// or the incomplete count for a specified `info_hash`.
 	keymember := concatenateKeyMember(info_hash, member)
 
-    x, err := c.SMembers(keymember).Result()
+	x, err := c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
 		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
 	}
 
-    retval = len(x)
+	retval = len(x)
 	return
 }
 

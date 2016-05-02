@@ -1,7 +1,7 @@
 package bencode
 
 import (
-    "bytes"
+	"bytes"
 	"fmt"
 	"strings"
 	"unicode/utf8"
@@ -88,10 +88,10 @@ func EncodeKV(key string, value string) string {
 // we use Sprintf still, but that's because I don't feel the need to adding
 // padding to this function.
 func writeStringData(val1 string, val2 string) string {
-    var buffer bytes.Buffer
+	var buffer bytes.Buffer
 
-    buffer.WriteString(val1)
-    buffer.WriteString(val2)
+	buffer.WriteString(val1)
+	buffer.WriteString(val2)
 
-    return buffer.String()
+	return buffer.String()
 }

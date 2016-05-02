@@ -5,10 +5,9 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-    loadedConfig := LoadConfig()
+	loadedConfig := LoadConfig()
 
-    if loadedConfig.MySQLHost != "localhost" {
-        t.Fatalf("Expected %s, got %v", "localhost", loadedConfig.MySQLHost)
-    }
+	if loadedConfig.MySQLHost != "localhost" {
+		t.Fatalf("Expected %s, got %v", "localhost", loadedConfig.MySQLHost)
+	}
 }
-

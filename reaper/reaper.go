@@ -26,7 +26,7 @@ func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
 			endTime := convertTimeToUnixTimeStamp(x[2])
 			if currTime >= endTime {
 				c.SRem(infoHash, keys[i])
-			    count++	
+				count++
 			}
 		}
 	}
