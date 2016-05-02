@@ -64,12 +64,12 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
 	return
 }
 
-func GetWhitelistedTorrent(infoHash string) (t *WhiteTorrent, err error) {
+func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 	db, err := OpenConnection()
 	if err != nil {
 		err = err
 	}
-	t = &WhiteTorrent{}
+	t = &White_Torrent{}
 
 	db.Where("info_hash = ?", infoHash).First(&t)
 
