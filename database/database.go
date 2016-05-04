@@ -41,7 +41,7 @@ func InitDB(db *gorm.DB) {
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
 // used by the tracker in the future.
-func (t *Torrent) AddWhitelistedTorrent() bool {
+func (t *White_Torrent) AddWhitelistedTorrent() bool {
 	db, err := OpenConnection()
 	if err != nil {
 		err = err
