@@ -60,7 +60,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 
 	newTorrent.AddWhitelistedTorrent()
 	// Done just to verify the error isn't with getting whitelisted torrents
-	retval, err := GetTorrent(newTorrent.InfoHash)
+	_, err := GetTorrent(newTorrent.InfoHash)
  	if err != nil {
  		t.Fatalf("Failed to GetTorrent")
  	}
@@ -86,7 +86,7 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 
 	newTorrent.AddWhitelistedTorrent()
 	// Done just to verify the error isn't with getting whitelisted torrents
-	retval, err := GetTorrent(newTorrent.InfoHash)
+	_, err := GetTorrent(newTorrent.InfoHash)
  	if err != nil {
  		t.Fatalf("Failed to GetTorrent")
  	}
