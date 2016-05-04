@@ -3,7 +3,6 @@ package db
 import (
 	"testing"
 	"time"
-	"fmt"
 )
 
 var DBCONN, _ = OpenConnection()
