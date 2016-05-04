@@ -48,6 +48,18 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 }
 
 func TestGetWhitelistedTorrents(t *testing.T) {
+	newTorrent := &Torrent{
+		InfoHash:   "12345123GetWhitelistedTorrents",
+		Name:       "Hello Kitty Island Adventure3.exe",
+		Downloaded: 0,
+		Seeders:    0,
+		Leechers:   0,
+		AddedBy:    "127.0.0.1",
+		DateAdded:  time.Now().Unix(),
+	}
+
+	newTorrent.AddWhitelistedTorrent()
+	
 	retval, err := GetWhitelistedTorrents()
 	if err != nil {
 		t.Fatalf("Failed to get all whitelisted torrents: %v", err)
@@ -58,14 +70,16 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 
 func TestGetWhitelistedTorrent(t *testing.T) {
 	newTorrent := &Torrent{
-		InfoHash:   "123451234512345123451234",
-		Name:       "Hello Kitty Island Adventure.exe",
+		InfoHash:   "12345123GetWhitelistedTorrent",
+		Name:       "Hello Kitty Island Adventure2.exe",
 		Downloaded: 0,
 		Seeders:    0,
 		Leechers:   0,
 		AddedBy:    "127.0.0.1",
 		DateAdded:  time.Now().Unix(),
 	}
+
+	newTorrent.AddWhitelistedTorrent()
 
 	retval, err := GetWhitelistedTorrent(newTorrent.InfoHash)
 	if err != nil {
