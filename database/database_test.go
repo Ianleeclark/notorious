@@ -52,7 +52,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 		t.Fatalf("Failed to get all whitelisted torrents")
 	}
 
-	fmt.Printf(retval)
+	fmt.Printf("%v", retval)
 }
 
 func TestGetWhitelistedTorrent(t *testing.T) {
