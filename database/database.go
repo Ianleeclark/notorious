@@ -92,7 +92,7 @@ func GetWhitelistedTorrents() (t *White_Torrent, err error) {
 	}
 	t = &White_Torrent{}
 
-    x := db.Where("info_hash = ?", infoHash).all(&t)
+    x := db.Where("info_hash = ?", infoHash)
     if x.Error != nil {
         err = x.Error
     }
