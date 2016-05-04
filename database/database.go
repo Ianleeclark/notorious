@@ -30,8 +30,6 @@ func OpenConnection() (db *gorm.DB, err error) {
 		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
-	InitDB(db)
-
 	return
 }
 
@@ -53,6 +51,9 @@ func (t *Torrent) AddWhitelistedTorrent() bool {
 	return db.NewRecord(t)
 }
 
+// GetTorrent retrieves a torrent by its infoHash from the generic torrent
+// table in the database. Note: there's also a whitelisted torrent table
+// (`white_torrent`).
 func GetTorrent(infoHash string) (t *Torrent, err error) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -60,11 +61,12 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
 	}
 	t = &Torrent{}
 
-	db.Where("info_hash = ?", infoHash).First(&t)
+	db.Where("info_hash = ?", infoHash).Find(&t)
 
 	return
 }
 
+// GetWhitelistedTorrent Retrieves a single whitelisted torrent by its infoHash
 func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -79,6 +81,25 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 
 	return
 }
+
+// GetWhitelistedTorrent allows us to retrieve all of the white listed
+// torrents. Mostly used for populating the Redis KV storage with all of our
+// whitelisted torrents.
+func GetWhitelistedTorrents() (t *White_Torrent, err error) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+	t = &White_Torrent{}
+
+    x := db.Where("info_hash = ?", infoHash).all(&t)
+    if x.Error != nil {
+        err = x.Error
+    }
+
+	return
+}
+
 
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
