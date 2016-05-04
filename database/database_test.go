@@ -44,7 +44,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 		t.Fatalf("Failed to get all whitelisted torrents: %v", err)
 	}
 
-	fmt.Printf("%v", retval)
+	fmt.Printf("VALUES: %v", retval)
 }
 
 func TestGetWhitelistedTorrent(t *testing.T) {
