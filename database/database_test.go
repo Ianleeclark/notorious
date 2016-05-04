@@ -20,9 +20,6 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 	newTorrent := &White_Torrent{
 		InfoHash:   "12345123451234512345",
 		Name:       "Hello Kitty Island Adventure.exe",
-		Downloaded: 0,
-		Seeders:    0,
-		Leechers:   0,
 		AddedBy:    "127.0.0.1",
 		DateAdded:  time.Now().Unix(),
 	}
@@ -36,9 +33,6 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 	newTorrent := &White_Torrent{
 		InfoHash:   "12345123GetWhitelistedTorrents",
 		Name:       "Hello Kitty Island Adventure3.exe",
-		Downloaded: 0,
-		Seeders:    0,
-		Leechers:   0,
 		AddedBy:    "127.0.0.1",
 		DateAdded:  time.Now().Unix(),
 	}
@@ -57,9 +51,6 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 	newTorrent := &White_Torrent{
 		InfoHash:   "12345123GetWhitelistedTorrent",
 		Name:       "Hello Kitty Island Adventure2.exe",
-		Downloaded: 0,
-		Seeders:    0,
-		Leechers:   0,
 		AddedBy:    "127.0.0.1",
 		DateAdded:  time.Now().Unix(),
 	}
