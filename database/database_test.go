@@ -9,10 +9,11 @@ import (
 var DBCONN, _ = OpenConnection()
 
 func TestOpenConn(t *testing.T) {
-	_, err := OpenConnection()
+	dbConn, err := OpenConnection()
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
+	InitDB(dbConn)
 }
 
 func TestAddWhitelistedTorrent(t *testing.T) {
