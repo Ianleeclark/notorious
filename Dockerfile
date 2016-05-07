@@ -19,6 +19,10 @@ RUN mkdir -p /var/log/supervisor
 ADD . /go/src/github.com/GrappigPanda/notorious
 COPY build/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Set up Docker volumen management.
+RUN mkdir /var/notorious
+VOLUME /var/notorious /var/notorious
+
 # Install dependencies
 RUN go get gopkg.in/redis.v3
 RUN go get github.com/jinzhu/gorm
