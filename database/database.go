@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+    "database/sql"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
@@ -85,17 +86,16 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 // GetWhitelistedTorrent allows us to retrieve all of the white listed
 // torrents. Mostly used for populating the Redis KV storage with all of our
 // whitelisted torrents.
-func GetWhitelistedTorrents() (t *White_Torrent, err error) {
+func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 	db, err := OpenConnection()
 	if err != nil {
 		err = err
 	}
-	t = &White_Torrent{}
 
-	x := db.Find(&t)
-	if x.Error != nil {
-		err = x.Error
-	}
+	x, err = db.Table("white_torrents").Rows()
+    if err != nil {
+        return
+    }
 
 	return
 }

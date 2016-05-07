@@ -20,7 +20,16 @@ func Init() {
 		panic("No Redis instance detected. If deploying without Docker, install redis-server")
 	}
 
-	db.GetWhitelistedTorrents()
+    infoHash := new(string)
+    name := new(string)
+    addedBy := new(string)
+    dateAdded := new(int64)
+
+    x, err := db.GetWhitelistedTorrents()
+    for x.Next() {
+        x.Scan(infoHash, name, addedBy, dateAdded)
+        server.CreateNewTorrentKey(c, *infoHash)
+    }
 }
 
 func main() {

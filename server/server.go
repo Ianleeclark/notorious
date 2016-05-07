@@ -27,6 +27,7 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	data := new(announceData)
 	data.requestContext = requestAppContext{
 		dbConn: nil,
+        whitelist: app.config.Whitelist,
 	}
 
 	err := data.parseAnnounceData(req)
