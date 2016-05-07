@@ -7,14 +7,9 @@ import (
 )
 
 const (
-	// STARTED is an event sent to the tracker upon peer starting.
-	STARTED = iota
-	// COMPLETED is an event sent to the tracker upon peer completing a
-	// download
-	COMPLETED
-	// STOPPED is an event sent to the tracker upon peer gracefully shutting
-	// down
-	STOPPED
+    RATIOLESS = iota
+    SEMIRATIOLESS
+    NORMALRATIO
 )
 
 type announceData struct {
@@ -73,4 +68,5 @@ var ANNOUNCE_URL = "/announce"
 // function as the application is desired.
 type applicationContext struct {
 	config config.ConfigStruct
+    trackerLevel int
 }

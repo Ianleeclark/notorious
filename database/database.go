@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-    "database/sql"
+	"database/sql"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
@@ -36,8 +36,10 @@ func OpenConnection() (db *gorm.DB, err error) {
 
 // InitDB initializes database tables.
 func InitDB(db *gorm.DB) {
-	db.CreateTable(&Torrent{})
 	db.CreateTable(&White_Torrent{})
+	db.CreateTable(&Torrent{})
+	db.CreateTable(&TrackerStats{})
+	db.CreateTable(&Peer_Stats{})
 }
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
@@ -75,12 +77,37 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 	}
 	t = &White_Torrent{}
 
-    x := db.Where("info_hash = ?", infoHash).First(&t)
-    if x.Error != nil {
-        err = x.Error
-    }
+        x := db.Where("info_hash = ?", infoHash).First(&t)
+        if x.Error != nil {
+            err = x.Error
+        }
 
 	return
+}
+
+// UpdateStats Handles updating statistics relevant to our tracker.
+func UpdateStats(uploaded uint64, downloaded uint64) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+
+	ts := &TrackerStats{}
+	db.First(&ts)
+
+	ts.Uploaded += int64(uploaded)
+	ts.Downloaded += int64(downloaded)
+	x := db.Save(&ts)
+	if x.Error != nil {
+		fmt.Println(x.Error)
+	} else {
+		fmt.Println(x.RowsAffected)
+	}
+
+	return
+}
+
+func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 }
 
 // GetWhitelistedTorrent allows us to retrieve all of the white listed
@@ -93,13 +120,12 @@ func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 	}
 
 	x, err = db.Table("white_torrents").Rows()
-    if err != nil {
-        return
-    }
+	if err != nil {
+	return
+	}
 
 	return
 }
-
 
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {

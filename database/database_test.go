@@ -36,7 +36,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 		DateAdded:  time.Now().Unix(),
 	}
 
-    newTorrent2 := &White_Torrent{
+	newTorrent2 := &White_Torrent{
 		InfoHash:   "FFFFFFFFFFFFhitelistedTorrents",
 		Name:       "Hello Kitty Island Adventure4.exe",
 		AddedBy:    "127.0.0.1",
@@ -44,7 +44,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 	}
 
 	newTorrent.AddWhitelistedTorrent()
-    newTorrent2.AddWhitelistedTorrent()
+	newTorrent2.AddWhitelistedTorrent()
 
 	_, err := GetWhitelistedTorrents()
 	if err != nil {
@@ -70,5 +70,28 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 	if retval.InfoHash != newTorrent.InfoHash {
 		t.Fatalf("Expected %v, got %v", retval.InfoHash,
 			newTorrent.InfoHash)
+	}
+}
+
+func TestUpdateStats(t *testing.T) {
+	expectedReturn := &TrackerStats{
+		Downloaded: 5,
+		Uploaded: 20,
+	}
+
+	UpdateStats(20, 5)
+
+	retval := &TrackerStats{}
+	DBCONN.First(&retval)
+	if retval.Downloaded != expectedReturn.Downloaded {
+		t.Fatalf("Expected %v, got %v",
+			expectedReturn.Downloaded,
+			retval.Downloaded)
+	}
+
+	if retval.Uploaded != expectedReturn.Uploaded {
+		t.Fatalf("Expected %v, got %v",
+			expectedReturn.Uploaded,
+			retval.Uploaded)
 	}
 }

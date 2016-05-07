@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/config"
+    "github.com/GrappigPanda/notorious/database"
 	"net/http"
 )
 
@@ -21,6 +22,13 @@ func worker(data *announceData) []string {
 
 	CreateNewTorrentKey(data.requestContext.redisClient, data.info_hash)
 	return worker(data)
+}
+
+func (app *applicationContext) handleStatsTracking(data *announceData) {
+    if app.trackerLevel > RATIOLESS {
+        db.UpdatePeerStats(data.uploaded, data.downloaded, data.ip)
+    }
+    db.UpdateStats(data.uploaded, data.downloaded)
 }
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
@@ -70,6 +78,8 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 			w.Write([]byte(createFailureMessage(failMsg)))
 		}
 	}
+
+    app.handleStatsTracking(data)
 }
 
 func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
@@ -85,6 +95,7 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
 func RunServer() {
 	app := applicationContext{
 		config: config.LoadConfig(),
+        trackerLevel: RATIOLESS,
 	}
 
 	mux := http.NewServeMux()
