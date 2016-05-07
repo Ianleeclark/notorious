@@ -14,26 +14,10 @@ func Init() {
 	}
 	db.InitDB(dbConn)
 
-	c := server.OpenClient()
-	_, err = c.Ping().Result()
-	if err != nil {
-		panic("No Redis instance detected. If deploying without Docker, install redis-server")
-	}
-
-    infoHash := new(string)
-    name := new(string)
-    addedBy := new(string)
-    dateAdded := new(int64)
-
-    x, err := db.GetWhitelistedTorrents()
-    for x.Next() {
-        x.Scan(infoHash, name, addedBy, dateAdded)
-        server.CreateNewTorrentKey(c, *infoHash)
-    }
+	go reaper.StartReapingScheduler(1 * time.Minute)
 }
 
 func main() {
 	Init()
-	go reaper.StartReapingScheduler(5 * time.Minute)
 	server.RunServer()
 }
