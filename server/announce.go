@@ -1,9 +1,7 @@
 package server
 
 import (
-	"errors"
 	"fmt"
-	"github.com/GrappigPanda/notorious/database"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -86,10 +84,8 @@ func (a *announceData) StartedEventHandler() (err error) {
 	err = nil
 
 	if !a.infoHashExists() && a.requestContext.whitelist {
-		_, err := db.GetWhitelistedTorrent(a.info_hash)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Info hash %s not authorized for use", a.info_hash))
-		}
+        err = fmt.Errorf("Torrent not authorized for use")
+        return
 	} else if !a.infoHashExists() && !a.requestContext.whitelist {
 		// If the info hash isn't in redis and we're not whitelisting, add it
 		// to Redis.

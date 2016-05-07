@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+    "database/sql"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
@@ -30,8 +31,6 @@ func OpenConnection() (db *gorm.DB, err error) {
 		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
-	InitDB(db)
-
 	return
 }
 
@@ -43,7 +42,7 @@ func InitDB(db *gorm.DB) {
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
 // used by the tracker in the future.
-func (t *Torrent) AddWhitelistedTorrent() bool {
+func (t *White_Torrent) AddWhitelistedTorrent() bool {
 	db, err := OpenConnection()
 	if err != nil {
 		err = err
@@ -53,6 +52,9 @@ func (t *Torrent) AddWhitelistedTorrent() bool {
 	return db.NewRecord(t)
 }
 
+// GetTorrent retrieves a torrent by its infoHash from the generic torrent
+// table in the database. Note: there's also a whitelisted torrent table
+// (`white_torrent`).
 func GetTorrent(infoHash string) (t *Torrent, err error) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -60,11 +62,12 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
 	}
 	t = &Torrent{}
 
-	db.Where("info_hash = ?", infoHash).First(&t)
+	db.Where("info_hash = ?", infoHash).Find(&t)
 
 	return
 }
 
+// GetWhitelistedTorrent Retrieves a single whitelisted torrent by its infoHash
 func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -79,6 +82,24 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 
 	return
 }
+
+// GetWhitelistedTorrent allows us to retrieve all of the white listed
+// torrents. Mostly used for populating the Redis KV storage with all of our
+// whitelisted torrents.
+func GetWhitelistedTorrents() (x *sql.Rows, err error) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+
+	x, err = db.Table("white_torrents").Rows()
+    if err != nil {
+        return
+    }
+
+	return
+}
+
 
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
