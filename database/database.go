@@ -94,20 +94,29 @@ func UpdateStats(uploaded uint64, downloaded uint64) {
 
 	ts := &TrackerStats{}
 	db.First(&ts)
-
-	ts.Uploaded += int64(uploaded)
-	ts.Downloaded += int64(downloaded)
-	x := db.Save(&ts)
-	if x.Error != nil {
-		fmt.Println(x.Error)
-	} else {
-		fmt.Println(x.RowsAffected)
-	}
+	db.Model(&ts).Updates(
+		TrackerStats{
+			Uploaded: ts.Uploaded + int64(uploaded),
+			Downloaded: ts.Downloaded + int64(downloaded),
+		})
 
 	return
 }
 
 func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+
+	ps := &Peer_Stats{Ip: ip}
+	db.First(&ps)
+	db.Model(&ps).UpdateColumn(map[string]interface{}{
+		"Uploaded": ps.Uploaded + int64(uploaded),
+		"Downloaded": ps.Downloaded + int64(downloaded),
+	})
+
+	return
 }
 
 // GetWhitelistedTorrent allows us to retrieve all of the white listed
