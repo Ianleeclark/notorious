@@ -3,6 +3,7 @@ package db
 import (
 	"testing"
 	"time"
+	"os"
 )
 
 var DBCONN, _ = OpenConnection()
@@ -75,9 +76,15 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 
 func TestUpdateStats(t *testing.T) {
 	expectedReturn := &TrackerStats{
-		Downloaded: 5,
-		Uploaded: 20,
+		Downloaded: 6,
+		Uploaded: 21,
 	}
+
+	newStats := &TrackerStats{
+		Downloaded: 1,
+		Uploaded: 1,
+	}
+	DBCONN.Save(&newStats)
 
 	UpdateStats(20, 5)
 
@@ -94,4 +101,53 @@ func TestUpdateStats(t *testing.T) {
 			expectedReturn.Uploaded,
 			retval.Uploaded)
 	}
+}
+
+func TestUpdatePeerStats(t *testing.T) {
+	expectedReturn := &Peer_Stats{
+		Downloaded: 6,
+		Uploaded: 21,
+		Ip: "127.0.0.1",
+	}
+
+	newPeer := &Peer_Stats{
+		Downloaded: 1,
+		Uploaded: 1,
+		Ip: "127.0.0.1",
+	}
+
+	DBCONN.Save(&newPeer)
+
+	UpdatePeerStats(20, 5, "127.0.0.1")
+
+	retval := &Peer_Stats{}
+	DBCONN.First(&retval)
+
+	if retval.Downloaded != expectedReturn.Downloaded {
+		t.Fatalf("Expected %v, got %v",
+			expectedReturn.Downloaded,
+			retval.Downloaded)
+	}
+
+	if retval.Uploaded != expectedReturn.Uploaded {
+		t.Fatalf("Expected %v, got %v",
+			expectedReturn.Uploaded,
+			retval.Uploaded)
+	}
+
+	if retval.Ip != expectedReturn.Ip {
+		t.Fatalf("Expected %v, got %v",
+			expectedReturn.Ip,
+			retval.Ip)
+	}
+}
+
+func TestMain(m *testing.M) {
+	DBCONN.DropTableIfExists(
+		&TrackerStats{},
+		&Peer_Stats{},
+		&Torrent{},
+		&White_Torrent{},
+	)
+	os.Exit(m.Run())
 }
