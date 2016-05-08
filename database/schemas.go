@@ -21,14 +21,14 @@ type White_Torrent struct {
 }
 
 type Peer_Stats struct {
-        id          int   `gorm:"AUTO_INCREMENT, unique, primary_key"`
-	Downloaded  int64 `gorm:"not null"`
-	Uploaded    int64 `gorm:"not null"`
-	Ip          string `gorm:"varchar(15)"`
+	id         int    `gorm:"AUTO_INCREMENT, unique, primary_key"`
+	Downloaded int64  `gorm:"not null"`
+	Uploaded   int64  `gorm:"not null"`
+	Ip         string `gorm:"varchar(15)"`
 }
 
 type TrackerStats struct {
-	id          	int   `gorm:"AUTO_INCREMENT, unique, primary_key"`
-        Downloaded  	int64 `gorm:"not null"`
-        Uploaded 	int64 `gorm:"not null"`
+	id         int   `gorm:"AUTO_INCREMENT, unique, primary_key"`
+	Downloaded int64 `gorm:"not null"`
+	Uploaded   int64 `gorm:"not null"`
 }

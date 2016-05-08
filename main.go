@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/reaper"
 	"github.com/GrappigPanda/notorious/server"
-	"github.com/GrappigPanda/notorious/database"
 	"time"
 )
 

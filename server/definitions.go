@@ -7,9 +7,9 @@ import (
 )
 
 const (
-    RATIOLESS = iota
-    SEMIRATIOLESS
-    NORMALRATIO
+	RATIOLESS = iota
+	SEMIRATIOLESS
+	NORMALRATIO
 )
 
 type announceData struct {
@@ -67,6 +67,6 @@ var ANNOUNCE_URL = "/announce"
 // applicationContext houses data necessary for the handler to properly
 // function as the application is desired.
 type applicationContext struct {
-	config config.ConfigStruct
-    trackerLevel int
+	config       config.ConfigStruct
+	trackerLevel int
 }

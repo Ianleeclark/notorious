@@ -1,9 +1,9 @@
 package db
 
 import (
+	"os"
 	"testing"
 	"time"
-	"os"
 )
 
 var DBCONN, _ = OpenConnection()
@@ -18,10 +18,10 @@ func TestOpenConn(t *testing.T) {
 
 func TestAddWhitelistedTorrent(t *testing.T) {
 	newTorrent := &White_Torrent{
-		InfoHash:   "12345123451234512345",
-		Name:       "Hello Kitty Island Adventure.exe",
-		AddedBy:    "127.0.0.1",
-		DateAdded:  time.Now().Unix(),
+		InfoHash:  "12345123451234512345",
+		Name:      "Hello Kitty Island Adventure.exe",
+		AddedBy:   "127.0.0.1",
+		DateAdded: time.Now().Unix(),
 	}
 
 	if !newTorrent.AddWhitelistedTorrent() {
@@ -31,17 +31,17 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 
 func TestGetWhitelistedTorrents(t *testing.T) {
 	newTorrent := &White_Torrent{
-		InfoHash:   "12345123GetWhitelistedTorrents",
-		Name:       "Hello Kitty Island Adventure3.exe",
-		AddedBy:    "127.0.0.1",
-		DateAdded:  time.Now().Unix(),
+		InfoHash:  "12345123GetWhitelistedTorrents",
+		Name:      "Hello Kitty Island Adventure3.exe",
+		AddedBy:   "127.0.0.1",
+		DateAdded: time.Now().Unix(),
 	}
 
 	newTorrent2 := &White_Torrent{
-		InfoHash:   "FFFFFFFFFFFFhitelistedTorrents",
-		Name:       "Hello Kitty Island Adventure4.exe",
-		AddedBy:    "127.0.0.1",
-		DateAdded:  time.Now().Unix(),
+		InfoHash:  "FFFFFFFFFFFFhitelistedTorrents",
+		Name:      "Hello Kitty Island Adventure4.exe",
+		AddedBy:   "127.0.0.1",
+		DateAdded: time.Now().Unix(),
 	}
 
 	newTorrent.AddWhitelistedTorrent()
@@ -55,10 +55,10 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 
 func TestGetWhitelistedTorrent(t *testing.T) {
 	newTorrent := &White_Torrent{
-		InfoHash:   "12345123GetWhitelistedTorrent",
-		Name:       "Hello Kitty Island Adventure2.exe",
-		AddedBy:    "127.0.0.1",
-		DateAdded:  time.Now().Unix(),
+		InfoHash:  "12345123GetWhitelistedTorrent",
+		Name:      "Hello Kitty Island Adventure2.exe",
+		AddedBy:   "127.0.0.1",
+		DateAdded: time.Now().Unix(),
 	}
 
 	newTorrent.AddWhitelistedTorrent()
@@ -77,12 +77,12 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 func TestUpdateStats(t *testing.T) {
 	expectedReturn := &TrackerStats{
 		Downloaded: 6,
-		Uploaded: 21,
+		Uploaded:   21,
 	}
 
 	newStats := &TrackerStats{
 		Downloaded: 1,
-		Uploaded: 1,
+		Uploaded:   1,
 	}
 	DBCONN.Save(&newStats)
 
@@ -106,14 +106,14 @@ func TestUpdateStats(t *testing.T) {
 func TestUpdatePeerStats(t *testing.T) {
 	expectedReturn := &Peer_Stats{
 		Downloaded: 6,
-		Uploaded: 21,
-		Ip: "127.0.0.1",
+		Uploaded:   21,
+		Ip:         "127.0.0.1",
 	}
 
 	newPeer := &Peer_Stats{
 		Downloaded: 1,
-		Uploaded: 1,
-		Ip: "127.0.0.1",
+		Uploaded:   1,
+		Ip:         "127.0.0.1",
 	}
 
 	DBCONN.Save(&newPeer)
