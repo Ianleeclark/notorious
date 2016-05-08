@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/config"
-    "github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/database"
 	"net/http"
 )
 
@@ -25,17 +25,17 @@ func worker(data *announceData) []string {
 }
 
 func (app *applicationContext) handleStatsTracking(data *announceData) {
-    if app.trackerLevel > RATIOLESS {
-        db.UpdatePeerStats(data.uploaded, data.downloaded, data.ip)
-    }
-    db.UpdateStats(data.uploaded, data.downloaded)
+	if app.trackerLevel > RATIOLESS {
+		db.UpdatePeerStats(data.uploaded, data.downloaded, data.ip)
+	}
+	db.UpdateStats(data.uploaded, data.downloaded)
 }
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
 	data := new(announceData)
 	data.requestContext = requestAppContext{
-		dbConn: nil,
-        whitelist: app.config.Whitelist,
+		dbConn:    nil,
+		whitelist: app.config.Whitelist,
 	}
 
 	err := data.parseAnnounceData(req)
@@ -79,7 +79,7 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 		}
 	}
 
-    app.handleStatsTracking(data)
+	app.handleStatsTracking(data)
 }
 
 func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
@@ -94,8 +94,8 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
 // RunServer spins up the server and muxes the url
 func RunServer() {
 	app := applicationContext{
-		config: config.LoadConfig(),
-        trackerLevel: RATIOLESS,
+		config:       config.LoadConfig(),
+		trackerLevel: RATIOLESS,
 	}
 
 	mux := http.NewServeMux()

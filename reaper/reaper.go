@@ -2,9 +2,9 @@ package reaper
 
 import (
 	"fmt"
+	"github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/server"
 	"gopkg.in/redis.v3"
-    "github.com/GrappigPanda/notorious/database"
-    "github.com/GrappigPanda/notorious/server"
 	"strconv"
 	"strings"
 	"time"
@@ -71,25 +71,25 @@ func StartReapingScheduler(waitTime time.Duration) {
 	reapedPeers := 0
 	go func() {
 		for {
-            // Handle any other cleanup or Notorious-related functions
-            c := server.OpenClient()
-            _, err := c.Ping().Result()
-            if err != nil {
-                panic("No Redis instance detected. If deploying without Docker, install redis-server")
-            }
+			// Handle any other cleanup or Notorious-related functions
+			c := server.OpenClient()
+			_, err := c.Ping().Result()
+			if err != nil {
+				panic("No Redis instance detected. If deploying without Docker, install redis-server")
+			}
 
-            infoHash := new(string)
-            name := new(string)
-            addedBy := new(string)
-            dateAdded := new(int64)
+			infoHash := new(string)
+			name := new(string)
+			addedBy := new(string)
+			dateAdded := new(int64)
 
-            x, err := db.GetWhitelistedTorrents()
-            for x.Next() {
-                x.Scan(infoHash, name, addedBy, dateAdded)
-                server.CreateNewTorrentKey(c, *infoHash)
-            }
+			x, err := db.GetWhitelistedTorrents()
+			for x.Next() {
+				x.Scan(infoHash, name, addedBy, dateAdded)
+				server.CreateNewTorrentKey(c, *infoHash)
+			}
 
-            // Start the actual peer reaper.
+			// Start the actual peer reaper.
 			time.Sleep(waitTime)
 			fmt.Println("Starting peer reaper")
 			reapedPeers += reapPeers()

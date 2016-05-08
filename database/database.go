@@ -1,8 +1,8 @@
 package db
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
@@ -77,10 +77,10 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 	}
 	t = &White_Torrent{}
 
-        x := db.Where("info_hash = ?", infoHash).First(&t)
-        if x.Error != nil {
-            err = x.Error
-        }
+	x := db.Where("info_hash = ?", infoHash).First(&t)
+	if x.Error != nil {
+		err = x.Error
+	}
 
 	return
 }
@@ -96,7 +96,7 @@ func UpdateStats(uploaded uint64, downloaded uint64) {
 	db.First(&ts)
 	db.Model(&ts).Updates(
 		TrackerStats{
-			Uploaded: ts.Uploaded + int64(uploaded),
+			Uploaded:   ts.Uploaded + int64(uploaded),
 			Downloaded: ts.Downloaded + int64(downloaded),
 		})
 
@@ -112,7 +112,7 @@ func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	ps := &Peer_Stats{Ip: ip}
 	db.First(&ps)
 	db.Model(&ps).UpdateColumn(map[string]interface{}{
-		"Uploaded": ps.Uploaded + int64(uploaded),
+		"Uploaded":   ps.Uploaded + int64(uploaded),
 		"Downloaded": ps.Downloaded + int64(downloaded),
 	})
 
@@ -130,7 +130,7 @@ func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 
 	x, err = db.Table("white_torrents").Rows()
 	if err != nil {
-	return
+		return
 	}
 
 	return

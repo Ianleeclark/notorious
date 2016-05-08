@@ -84,8 +84,8 @@ func (a *announceData) StartedEventHandler() (err error) {
 	err = nil
 
 	if !a.infoHashExists() && a.requestContext.whitelist {
-        err = fmt.Errorf("Torrent not authorized for use")
-        return
+		err = fmt.Errorf("Torrent not authorized for use")
+		return
 	} else if !a.infoHashExists() && !a.requestContext.whitelist {
 		// If the info hash isn't in redis and we're not whitelisting, add it
 		// to Redis.
