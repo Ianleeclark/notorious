@@ -137,7 +137,22 @@ func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 }
 
 // ScrapeTorrent supports the Scrape convention
-func ScrapeTorrent(db *gorm.DB, infoHash string) interface{} {
-	var torrent Torrent
-	return db.Where("infoHash = ?", infoHash).First(&torrent)
+func ScrapeTorrentFromInfoHash(db *gorm.DB, infoHash string) (values string, err error) {
+	torrent := &Torrent{}
+
+	x := db.Where("info_hash = ?", infoHash).First(&torrent)
+	if x.Error != nil {
+		err = x.Error
+	}
+
+	fmt.Println(x.Value)
+
+	return
+}
+
+func ScrapeTorrent(db *gorm.DB) string {
+	torrent := &Torrent{}
+	db.Find(&torrent)
+
+	return ""
 }

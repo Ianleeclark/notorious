@@ -23,7 +23,6 @@ func worker(data *announceData) []string {
 	CreateNewTorrentKey(data.requestContext.redisClient, data.info_hash)
 	return worker(data)
 }
-
 func (app *applicationContext) handleStatsTracking(data *announceData) {
 	if app.trackerLevel > RATIOLESS {
 		db.UpdatePeerStats(data.uploaded, data.downloaded, data.ip)
@@ -74,24 +73,50 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 			w.Write([]byte(response))
 
 		} else {
-			failMsg := fmt.Sprintf("No peers for torrent %s\n", data.info_hash)
-			w.Write([]byte(createFailureMessage(failMsg)))
+			failMsg := fmt.Sprintf("No peers for torrent %s\n",
+				data.info_hash)
+			writeErrorResponse(w, failMsg)
 		}
 	}
 
 	app.handleStatsTracking(data)
 }
 
-func scrapeHandler(w http.ResponseWriter, req *http.Request) interface{} {
-	//query := req.URL.Query()
-	//infoHash := ParseInfoHash(query.Get("info_hash"))
+func scrapeHandler(w http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
+	dbConn, err := db.OpenConnection()
+	if err != nil {
+		panic(err)
+	}
 
-	//data := db.ScrapeTorrent(db.OpenConnection(), infoHash)
-	//return data
-	return "TODO"
+	infoHash := query.Get("info_hash")
+	if infoHash != "" {
+		values, err := db.ScrapeTorrentFromInfoHash(
+			dbConn,
+			ParseInfoHash(infoHash))
+		if err != nil {
+			failMsg := fmt.Sprintf("Torrent not found.")
+			writeErrorResponse(w, failMsg)
+		}
+
+		writeResponse(w, req, values)
+	} else {
+		writeResponse(w, req, db.ScrapeTorrent(dbConn))
+	}
+
+	return
 }
 
-// RunServer spins up the server and muxes the url
+func writeErrorResponse(w http.ResponseWriter, failMsg string) {
+	w.Write([]byte(createFailureMessage(failMsg)))
+}
+
+func writeResponse(w http.ResponseWriter, req *http.Request, values string) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(values))
+}
+
+// RunServer spins up the server and muxes the routes.
 func RunServer() {
 	app := applicationContext{
 		config:       config.LoadConfig(),
@@ -101,6 +126,6 @@ func RunServer() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", app.requestHandler)
-	//mux.HandleFunc("/scrape", scrapeHandler)
+	mux.HandleFunc("/scrape", scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }
