@@ -159,4 +159,3 @@ func ScrapeTorrent(db *gorm.DB, infoHash string) (torrent *Torrent) {
 	db.Where("info_hash = ?", infoHash).First(&torrent)
 	return
 }
-
