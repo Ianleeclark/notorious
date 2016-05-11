@@ -5,4 +5,4 @@ MySQLPass: testuser
 MySQLDB: testdb
 RedisServer: localhost
 RedisPort: 6379
-Whitelist: true
+Whitelist: false
