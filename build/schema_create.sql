@@ -1,0 +1,8 @@
+DROP DATABASE IF EXISTS testdb;
+CREATE DATABASE testdb;
+
+USE testdb;
+
+CREATE USER 'testuser'@'%' IDENTIFIED BY 'testuser';
+GRANT ALL PRIVILEGES ON *.* TO 'testuser'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;

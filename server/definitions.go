@@ -1,34 +1,39 @@
 package server
 
 import (
+	"github.com/GrappigPanda/notorious/config"
+	"github.com/jinzhu/gorm"
 	"gopkg.in/redis.v3"
-    "github.com/GrappigPanda/notorious/config"
-    "github.com/jinzhu/gorm"
 )
 
 const (
-    // STARTED is an event sent to the tracker upon peer starting.
-	STARTED = iota
-    // COMPLETED is an event sent to the tracker upon peer completing a
-    // download
-	COMPLETED
-    // STOPPED is an event sent to the tracker upon peer gracefully shutting
-    // down
-	STOPPED
+	RATIOLESS = iota
+	SEMIRATIOLESS
+	NORMALRATIO
 )
 
 type announceData struct {
-	info_hash   string        //20 byte sha1 hash
-	peer_id     string        //max len 20
-	ip          string        //optional
-	event       string        // TorrentEvent
-	port        uint64        // port number the peer is listening on
-	uploaded    uint64        // base10 ascii amount uploaded so far
-	downloaded  uint64        // base10 ascii amount downloaded so far
-	left        uint64        // # of bytes left to download (base 10 ascii)
-	numwant     uint64        // Number of peers requested by client.
-	compact     bool          // Bep23 peer list compression decision: True -> compress bep23
-    requestContext requestAppContext // The request-specific connections
+	info_hash      string            //20 byte sha1 hash
+	peer_id        string            //max len 20
+	ip             string            //optional
+	event          string            // TorrentEvent
+
+	port           uint64            // port number the peer is listening
+					 // on
+
+	uploaded       uint64            // base10 ascii amount uploaded so far
+	downloaded     uint64            // base10 ascii amount downloaded so
+					 // far
+
+	left           uint64            // # of bytes left to download
+					 // (base 10 ascii)
+
+	numwant        uint64            // Number of peers requested by client.
+
+	compact        bool              // Bep23 peer list compression
+					 // decision: True -> compress bep23
+
+	requestContext requestAppContext // The request-specific connections
 }
 
 // requestAppContext First of all naming things is the hardest part of
@@ -36,8 +41,9 @@ type announceData struct {
 // request-specific data like db connections and in the future the redisClient.
 // Things that should persist only within the duration of a request.
 type requestAppContext struct {
-    dbConn *gorm.DB
+	dbConn      *gorm.DB
 	redisClient *redis.Client // The redis client connection handler to use.
+	whitelist   bool
 }
 
 type scrapeData struct {
@@ -71,5 +77,6 @@ var ANNOUNCE_URL = "/announce"
 // applicationContext houses data necessary for the handler to properly
 // function as the application is desired.
 type applicationContext struct {
-    config config.ConfigStruct
+	config       config.ConfigStruct
+	trackerLevel int
 }

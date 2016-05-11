@@ -78,10 +78,10 @@ func TestEncodeKVValueIsInt(t *testing.T) {
 }
 
 func TestWriteStringData(t *testing.T) {
-    expectedResult := "test1234"
-    result := writeStringData("test", "1234")
+	expectedResult := "test1234"
+	result := writeStringData("test", "1234")
 
-    if expectedResult != result {
-        t.Fatalf("Expected %s, got %s", expectedResult, result)
-    }
+	if expectedResult != result {
+		t.Fatalf("Expected %s, got %s", expectedResult, result)
+	}
 }
