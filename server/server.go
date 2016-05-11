@@ -24,10 +24,22 @@ func worker(data *announceData) []string {
 	return worker(data)
 }
 func (app *applicationContext) handleStatsTracking(data *announceData) {
+	db.UpdateStats(data.uploaded, data.downloaded)
+
 	if app.trackerLevel > RATIOLESS {
 		db.UpdatePeerStats(data.uploaded, data.downloaded, data.ip)
 	}
-	db.UpdateStats(data.uploaded, data.downloaded)
+
+	if data.event == "completed" {
+		db.UpdateTorrentStats(1, -1)
+		return
+	} else if data.left == 0 {
+		// TODO(ian): Don't assume the peer is already in the DB
+		db.UpdateTorrentStats(1, -1)
+		return
+	} else if data.event == "started" {
+		db.UpdateTorrentStats(0, 1)
+	}
 }
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
@@ -48,8 +60,7 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	case "started":
 		err := data.StartedEventHandler()
 		if err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte(createFailureMessage(err.Error())))
+			writeErrorResponse(w, err.Error())
 
 			return
 		}
@@ -67,10 +78,8 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 		x := RedisGetAllPeers(data, data.info_hash)
 
 		if len(x) > 0 {
-			w.Header().Set("Content-Type", "text/plain")
 			response := formatResponseData(x, data)
-
-			w.Write([]byte(response))
+			writeResponse(w, response)
 
 		} else {
 			failMsg := fmt.Sprintf("No peers for torrent %s\n",
@@ -90,28 +99,22 @@ func scrapeHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	infoHash := query.Get("info_hash")
-	if infoHash != "" {
-		values, err := db.ScrapeTorrentFromInfoHash(
-			dbConn,
-			ParseInfoHash(infoHash))
-		if err != nil {
-			failMsg := fmt.Sprintf("Torrent not found.")
-			writeErrorResponse(w, failMsg)
-		}
-
-		writeResponse(w, req, values)
+	if infoHash == "" {
+		failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
+		writeErrorResponse(w, failMsg)
 	} else {
-		writeResponse(w, req, db.ScrapeTorrent(dbConn))
+		torrentData := db.ScrapeTorrent(dbConn, infoHash)
+		writeResponse(w, formatScrapeResponse(torrentData))
 	}
 
 	return
 }
 
 func writeErrorResponse(w http.ResponseWriter, failMsg string) {
-	w.Write([]byte(createFailureMessage(failMsg)))
+	writeResponse(w, createFailureMessage(failMsg))
 }
 
-func writeResponse(w http.ResponseWriter, req *http.Request, values string) {
+func writeResponse(w http.ResponseWriter, values string) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(values))
 }

@@ -103,6 +103,24 @@ func UpdateStats(uploaded uint64, downloaded uint64) {
 	return
 }
 
+// UpdateStats Handles updating statistics relevant to our tracker.
+func UpdateTorrentStats(seederDelta int64, leecherDelta int64) {
+	db, err := OpenConnection()
+	if err != nil {
+		err = err
+	}
+
+	t := &Torrent{}
+	db.First(&t)
+	db.Model(&t).Updates(
+		TrackerStats{
+			Uploaded:   t.Seeders + seederDelta,
+			Downloaded: t.Leechers + leecherDelta,
+		})
+
+	return
+}
+
 func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -137,22 +155,8 @@ func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 }
 
 // ScrapeTorrent supports the Scrape convention
-func ScrapeTorrentFromInfoHash(db *gorm.DB, infoHash string) (values string, err error) {
-	torrent := &Torrent{}
-
-	x := db.Where("info_hash = ?", infoHash).First(&torrent)
-	if x.Error != nil {
-		err = x.Error
-	}
-
-	fmt.Println(x.Value)
-
+func ScrapeTorrent(db *gorm.DB, infoHash string) (torrent *Torrent) {
+	db.Where("info_hash = ?", infoHash).First(&torrent)
 	return
 }
 
-func ScrapeTorrent(db *gorm.DB) string {
-	torrent := &Torrent{}
-	db.Find(&torrent)
-
-	return ""
-}

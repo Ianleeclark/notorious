@@ -17,12 +17,22 @@ type announceData struct {
 	peer_id        string            //max len 20
 	ip             string            //optional
 	event          string            // TorrentEvent
-	port           uint64            // port number the peer is listening on
+
+	port           uint64            // port number the peer is listening
+					 // on
+
 	uploaded       uint64            // base10 ascii amount uploaded so far
-	downloaded     uint64            // base10 ascii amount downloaded so far
-	left           uint64            // # of bytes left to download (base 10 ascii)
+	downloaded     uint64            // base10 ascii amount downloaded so
+					 // far
+
+	left           uint64            // # of bytes left to download
+					 // (base 10 ascii)
+
 	numwant        uint64            // Number of peers requested by client.
-	compact        bool              // Bep23 peer list compression decision: True -> compress bep23
+
+	compact        bool              // Bep23 peer list compression
+					 // decision: True -> compress bep23
+
 	requestContext requestAppContext // The request-specific connections
 }
 

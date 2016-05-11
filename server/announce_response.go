@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
+	"github.com/GrappigPanda/notorious/database"
 	"net"
 	"strconv"
 	"strings"
@@ -82,6 +83,26 @@ func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	}
 
 	return fmt.Sprintf("d%se", ret)
+}
+
+func formatScrapeResponse(torrent *db.Torrent) string {
+	subdir := fmt.Sprintf("d%s%s%s%s%s%se",
+		bencode.EncodeByteString("complete"),
+		bencode.EncodeInt(int(torrent.Seeders)),
+
+		bencode.EncodeByteString("downloaded"),
+		bencode.EncodeInt(int(torrent.Downloaded)),
+
+		bencode.EncodeByteString("incomplete"),
+		bencode.EncodeInt(int(torrent.Leechers)),
+	)
+
+	fileList := bencode.EncodeKV(
+		bencode.EncodeByteString(torrent.InfoHash),
+		subdir,
+	)
+
+	return fmt.Sprintf("d%se", fileList)
 }
 
 func createFailureMessage(msg string) string {
