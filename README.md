@@ -2,16 +2,15 @@
 # Notorious
 Hello everybody! Notorious aims to be a highy extensible tracker implemented in golang. Right now, Notorious uses Redis to store peer information for quick retrieval and to alleviate some of the burden of storing peer information from the tracker itself. Moreover, some of the core functionalities which Notorious hopes to gain include the following:
 ```
-1. Ratio tracking using a SQL backend (I will be using an ORM layer so that most SQL DBs will be supported).
-2. "Complete" Ratioless tracking: no peer information is ever stored
-3. "Semi-ratioless" tracking: we store just statistics information + "Complete" tracking info.
-4. "Normal" tracking: a unique key is assigned to a peer and we store seeds/leeches, downloaded bytes/uploaded bytes.
-5. Automatic Redis docker deployment. I like docker and Redis is my peer-storage of choice and they work well together.
-6. Speed and scalability are always in the back of my mind, even if my decisions don't always reflect that
+1. Improved ratio tracking using a SQL (using an ORM, so it's preference). 
+2. IPV6 support
+3. UDP & HTTPS tracking (only supports HTTP right now)
+4. Speed and scalability are always in the back of my mind, even if my decisions don't always reflect that
+5. Remove technical debt. I learned go from this project, so there's definitely non-idiomatic and idiotic code in places.
 ```
 
-
 There's probably a lot more! Check out my [issues page](https://github.com/GrappigPanda/notorious/issues)
+And here for what's planned to be in the next release: [Milestone 0.5.0](https://github.com/GrappigPanda/notorious/pull/139)
 
 # Deployment
 
@@ -30,11 +29,6 @@ This will build the docker image which you can then run it either on local bare-
 
 ## Please note:
 I have not yet included instructions for running everything on bare-metal and I'm using docker because it just works (sorry, I try to keep the buzzwordiness down [despite deploying notorious with mariadb, redis, docker, go...]), but those are soon to come. I just honestly thing the docker way is 10x (just like me, heh) easier to deploy with at this particular moment.
-
-# Test it out?
-
-Hey, while you're here why don't you try out NetBSD after testing out my tracker [NetBSD-7.0.arm64.torrent](https://github.com/GrappigPanda/notorious/blob/master/NetBSD-7.0-amd64.iso.torrent)
-(I'm not part of the NetBSD project or anything, I just like the product -- also, you probably run Intel, so this torrent doesn't really do you any good unless you're looking to virtualize NetBSD version 7.0. So for that one person out there, this one's for you).
 
 # Contact Notorious
 
