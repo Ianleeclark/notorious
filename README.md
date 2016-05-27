@@ -10,6 +10,7 @@ Hello everybody! Notorious aims to be a highy extensible tracker implemented in 
 ```
 
 There's probably a lot more! Check out my [issues page](https://github.com/GrappigPanda/notorious/issues)
+
 And here for what's planned to be in the next release: [Milestone 0.5.0](https://github.com/GrappigPanda/notorious/pull/139)
 
 # Deployment
