@@ -5,4 +5,7 @@ MySQLPass: testuser
 MySQLDB: testdb
 RedisServer: localhost
 RedisPort: 6379
+# Whitelist indicates that torrent whitelisting is activated. When torrent
+# whitelisting is activated, only pre-approved torrents can be served by
+# Notorious
 Whitelist: false
