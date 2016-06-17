@@ -29,7 +29,7 @@ Et voilà, you have a copy of notorious running,.
 This will build the docker image which you can then run it either on local bare-metal, or if you're interested in the Docker Cloud route (which I highly recommend) head over to their [Documentation](https://docs.docker.com/docker-cloud/getting-started/) They'll explain deployment 1 000% better than I can.
 
 ## Please note:
-I have not yet included instructions for running everything on bare-metal and I'm using docker because it just works (sorry, I try to keep the buzzwordiness down [despite deploying notorious with mariadb, redis, docker, go...]), but those are soon to come. I just honestly thing the docker way is 10x (just like me, heh) easier to deploy with at this particular moment.
+I have not yet included instructions for running everything on bare-metal and I'm using docker because it just works (sorry, I try to keep the buzzwordiness down [despite deploying notorious with redis, docker, go...]), but those are soon to come. I just honestly thing the docker way is 10x (just like me, heh) easier to deploy with at this particular moment.
 
 # Contact Notorious
 
