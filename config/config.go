@@ -15,7 +15,8 @@ type ConfigStruct struct {
 }
 
 // LoadConfig loads the config into the Config Struct and returns the
-// ConfigStruct object
+// ConfigStruct object. Will load from environmental variables (all caps) if we
+// set a flag to true.
 func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
