@@ -1,5 +1,5 @@
 MySQLHost: localhost
-MySQLPort: 3306
+MySQLPort: "3306"
 MySQLUser: testuser
 MySQLPass: testuser 
 MySQLDB: testdb
@@ -9,3 +9,6 @@ RedisPort: 6379
 # whitelisting is activated, only pre-approved torrents can be served by
 # Notorious
 Whitelist: false
+# UseEnvVariables allows environmental variables to be used instead of
+# expliclitly defined config variables.
+UseEnvVariables: true

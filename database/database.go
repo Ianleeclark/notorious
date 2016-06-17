@@ -12,7 +12,7 @@ import (
 // formatConnectStrings concatenates the data from the config file into a
 // usable MySQL connection string.
 func formatConnectString(c config.ConfigStruct) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?parseTime=true",
+	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
 		c.MySQLUser,
 		c.MySQLPass,
 		c.MySQLHost,
