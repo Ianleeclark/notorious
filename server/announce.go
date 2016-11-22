@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+    "github.com/GrappigPanda/notorious/server/peerStore"
 )
 
 func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
@@ -56,7 +57,7 @@ func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
 		a.event = "started"
 	}
 
-	a.requestContext.redisClient = OpenClient()
+	a.requestContext.redisClient = peerStore.OpenClient()
 
 	return
 }
@@ -103,8 +104,8 @@ func (a *announceData) StartedEventHandler() (err error) {
 		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
 	}
 
-	RedisSetKeyVal(a.requestContext.redisClient, keymember, ipport)
-	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
+	peerStore.RedisSetKeyVal(a.requestContext.redisClient, keymember, ipport)
+	if peerStore.RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 
@@ -139,7 +140,7 @@ func (a *announceData) CompletedEventHandler() {
 	keymember := fmt.Sprintf("%s:complete", a.info_hash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", a.ip, a.port)
-	if RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
+	if peerStore.RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.info_hash)
 	}
 }
@@ -150,15 +151,15 @@ func (a *announceData) removeFromKVStorage(subkey string) {
 	keymember := fmt.Sprintf("%s:%s", a.info_hash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	RedisRemoveKeysValue(a.requestContext.redisClient, keymember, ipport)
+	peerStore.RedisRemoveKeysValue(a.requestContext.redisClient, keymember, ipport)
 }
 
 func (a *announceData) infoHashExists() bool {
-	return RedisGetBoolKeyVal(a.requestContext.redisClient, a.info_hash)
+	return peerStore.RedisGetBoolKeyVal(a.info_hash)
 }
 
 func (a *announceData) createInfoHashKey() {
-	CreateNewTorrentKey(a.requestContext.redisClient, a.info_hash)
+	peerStore.CreateNewTorrentKey(a.info_hash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a

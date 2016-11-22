@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/server/peerStore"
 	"net"
 	"strconv"
 	"strings"
@@ -70,8 +71,8 @@ func formatResponseData(ips []string, data *announceData) string {
 // string that we respond with.
 func EncodeResponse(ipport []string, data *announceData) (resp string) {
 	ret := ""
-	completeCount := len(RedisGetKeyVal(data, data.info_hash))
-	incompleteCount := len(RedisGetKeyVal(data, data.info_hash))
+	completeCount := len(peerStore.RedisGetKeyVal(data.info_hash))
+	incompleteCount := len(peerStore.RedisGetKeyVal(data.info_hash))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))

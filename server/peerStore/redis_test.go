@@ -1,4 +1,4 @@
-package server
+package peerStore
 
 import (
 	"testing"

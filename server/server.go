@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/server/peerStore"
 	"net/http"
 )
 
@@ -11,16 +12,16 @@ import (
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
 func worker(data *announceData) []string {
-	if RedisGetBoolKeyVal(data.requestContext.redisClient, data.info_hash) {
-		x := RedisGetKeyVal(data, data.info_hash)
+	if peerStore.RedisGetBoolKeyVal(data.info_hash) {
+		x := peerStore.RedisGetKeyVal(data.info_hash)
 
-		RedisSetIPMember(data)
+        peerStore.RedisSetIPMember(data.info_hash, fmt.Sprintf("%s:%s", data.ip, data.port))
 
 		return x
 
 	}
 
-	CreateNewTorrentKey(data.requestContext.redisClient, data.info_hash)
+	peerStore.CreateNewTorrentKey(data.info_hash)
 	return worker(data)
 }
 func (app *applicationContext) handleStatsTracking(data *announceData) {
@@ -75,7 +76,7 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 
 	if data.event == "started" || data.event == "completed" {
 		worker(data)
-		x := RedisGetAllPeers(data, data.info_hash)
+		x := peerStore.RedisGetAllPeers(data.info_hash)
 
 		if len(x) > 0 {
 			response := formatResponseData(x, data)
