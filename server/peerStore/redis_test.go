@@ -2,6 +2,7 @@ package peerStore
 
 import (
 	"testing"
+    "github.com/GrappigPanda/notorious/server"
 )
 
 var reqContext = requestAppContext{
