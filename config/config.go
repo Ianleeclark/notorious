@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
+        "strconv"
 )
 
 // ConfigStruct holds the values that our config file holds
@@ -34,6 +35,10 @@ func LoadConfig() ConfigStruct {
                 viper.BindEnv("mysqluser")
         }
 
+        whitelist, err := strconv.ParseBool(viper.Get("whitelist").(string))
+        if err != nil {
+                whitelist = false
+        }
 
 	if viper.Get("MySQLPass").(string) != "" {
 		return ConfigStruct{
@@ -42,7 +47,7 @@ func LoadConfig() ConfigStruct {
 			viper.Get("mysqluser").(string),
 			viper.Get("mysqlpass").(string),
 			viper.Get("mysqldb").(string),
-			viper.Get("whitelist").(bool),
+			whitelist,
 		}
 	} else {
 		return ConfigStruct{
@@ -51,7 +56,7 @@ func LoadConfig() ConfigStruct {
 			viper.Get("mysqluser").(string),
 			"",
 			viper.Get("mysqldb").(string),
-			viper.Get("whitelist").(bool),
+			whitelist,
 		}
 	}
 
