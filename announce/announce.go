@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-    "github.com/GrappigPanda/notorious/server/peerStore"
+    r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 )
 
 func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
@@ -63,7 +63,7 @@ func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 		a.Event = "started"
 	}
 
-	a.RequestContext.redisClient = peerStore.OpenClient()
+	a.RequestContext.redisClient = r.OpenClient()
 
 	return
 }
@@ -110,8 +110,8 @@ func (a *AnnounceData) StartedEventHandler() (err error) {
 		ipport = fmt.Sprintf("%s:%d", a.IP, a.Port)
 	}
 
-	peerStore.RedisSetKeyVal(a.RequestContext.redisClient, keymember, ipport)
-	if peerStore.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	r.RedisSetKeyVal(a.RequestContext.redisClient, keymember, ipport)
+	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 
@@ -146,7 +146,7 @@ func (a *AnnounceData) CompletedEventHandler() {
 	keymember := fmt.Sprintf("%s:complete", a.InfoHash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", a.IP, a.Port)
-	if peerStore.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.InfoHash)
 	}
 }
@@ -157,15 +157,15 @@ func (a *AnnounceData) removeFromKVStorage(subkey string) {
 	keymember := fmt.Sprintf("%s:%s", a.InfoHash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	peerStore.RedisRemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
+	r.RedisRemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
 }
 
 func (a *AnnounceData) infoHashExists() bool {
-	return peerStore.RedisGetBoolKeyVal(a.InfoHash)
+	return r.RedisGetBoolKeyVal(a.InfoHash)
 }
 
 func (a *AnnounceData) createInfoHashKey() {
-	peerStore.CreateNewTorrentKey(a.InfoHash)
+	r.CreateNewTorrentKey(a.InfoHash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a

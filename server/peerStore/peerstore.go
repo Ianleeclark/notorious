@@ -7,4 +7,5 @@ type PeerStore interface {
     KeyExists(string) bool
     GetKeyVal(string) []string
     GetAllPeers(string) []string
+    SetIPMember(string, string) int
 }

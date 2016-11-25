@@ -6,6 +6,7 @@ import (
 	"github.com/GrappigPanda/notorious/database"
 	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/server/peerStore"
+	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ import (
 type applicationContext struct {
 	config       config.ConfigStruct
 	trackerLevel int
-    peerStoreClient *peerStore.PeerStore
+    peerStoreClient peerStore.PeerStore
 }
 
 type scrapeData struct {
@@ -49,14 +50,14 @@ var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compac
 
 func (app *applicationContext) worker(data *AnnounceData) []string {
 	if app.peerStoreClient.KeyExists(data.InfoHash) {
-		x := peerStore.GetKeyVal(data.InfoHash)
+		x := app.peerStoreClient.GetKeyVal(data.InfoHash)
 
-        app.peerStoreClient.RedisSetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
+        app.peerStoreClient.SetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
 
 		return x
 
 	} else {
-        app.peerStoreClient.SetKV(data.InfoHash)
+        r.CreateNewTorrentKey(data.InfoHash)
     }
 
 	return app.worker(data)
@@ -158,12 +159,10 @@ func writeResponse(w http.ResponseWriter, values string) {
 
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
-    peerStore := new(peerStore.RedisStore)
-
 	app := applicationContext{
 		config:       config.LoadConfig(),
 		trackerLevel: RATIOLESS,
-        peerStoreClient: peerStore.redisStore,
+        peerStoreClient: new(peerStore.RedisStore),
 	}
 
 	mux := http.NewServeMux()
