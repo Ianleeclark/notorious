@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/bencode"
 	"github.com/GrappigPanda/notorious/database"
+	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/server/peerStore"
 	"net"
 	"strconv"
@@ -63,20 +64,20 @@ func CompactAllPeers(ipport []string) []byte {
 	return ret.Bytes()
 }
 
-func formatResponseData(ips []string, data *announceData) string {
+func formatResponseData(ips []string, data *AnnounceData) string {
 	return EncodeResponse(ips, data)
 }
 
 // EncodeResponse groups all of the peer-requested data into a nice bencoded
 // string that we respond with.
-func EncodeResponse(ipport []string, data *announceData) (resp string) {
+func EncodeResponse(ipport []string, data *AnnounceData) (resp string) {
 	ret := ""
-	completeCount := len(peerStore.RedisGetKeyVal(data.info_hash))
-	incompleteCount := len(peerStore.RedisGetKeyVal(data.info_hash))
+	completeCount := len(peerStore.RedisGetKeyVal(data.InfoHash))
+	incompleteCount := len(peerStore.RedisGetKeyVal(data.InfoHash))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
-	if data.compact || !data.compact {
+	if data.Compact || !data.Compact {
 		ipstr := string(CompactAllPeers(ipport))
 		ret += bencode.EncodeKV("peers", ipstr)
 	} else {

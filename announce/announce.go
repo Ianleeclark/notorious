@@ -1,4 +1,4 @@
-package server
+package announce
 
 import (
 	"fmt"
@@ -9,55 +9,61 @@ import (
     "github.com/GrappigPanda/notorious/server/peerStore"
 )
 
-func (a *announceData) parseAnnounceData(req *http.Request) (err error) {
+func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 	query := req.URL.Query()
-	a.info_hash = ParseInfoHash(query.Get("info_hash"))
-	if a.info_hash == "" {
-		err = fmt.Errorf("No info_hash provided.")
+
+	a.RequestContext = requestAppContext{
+		dbConn:    nil,
+		Whitelist: false,
+	}
+
+	a.InfoHash = ParseInfoHash(query.Get("InfoHash"))
+	if a.InfoHash == "" {
+		err = fmt.Errorf("No InfoHash provided.")
 		return
 	}
 	if strings.Contains(req.RemoteAddr, ":") {
-		a.ip = strings.Split(req.RemoteAddr, ":")[0]
+		a.IP = strings.Split(req.RemoteAddr, ":")[0]
 	} else {
-		a.ip = query.Get(req.RemoteAddr)
+		a.IP = query.Get(req.RemoteAddr)
 	}
-	a.peer_id = query.Get("peer_id")
+	a.PeerID = query.Get("peer_id")
 
-	a.port, err = GetInt(query, "port")
+	a.Port, err = GetInt(query, "port")
 	if err != nil {
 		return fmt.Errorf("Failed to get port")
 	}
-	a.downloaded, err = GetInt(query, "downloaded")
+	a.Downloaded, err = GetInt(query, "downloaded")
 	if err != nil {
 		err = fmt.Errorf("Failed to get downloaded byte count.")
 		return
 	}
-	a.uploaded, err = GetInt(query, "uploaded")
+	a.Uploaded, err = GetInt(query, "uploaded")
 	if err != nil {
 		err = fmt.Errorf("Failed to get uploaded byte count.")
 		return
 	}
-	a.left, err = GetInt(query, "left")
+	a.Left, err = GetInt(query, "left")
 	if err != nil {
 		err = fmt.Errorf("Failed to get remaining byte count.")
 		return
 	}
-	a.numwant, err = GetInt(query, "numwant")
+	a.Numwant, err = GetInt(query, "numwant")
 	if err != nil {
-		a.numwant = 0
+		a.Numwant = 0
 	}
 	if x := query.Get("compact"); x != "" {
-		a.compact, err = strconv.ParseBool(x)
+		a.Compact, err = strconv.ParseBool(x)
 		if err != nil {
-			a.compact = false
+			a.Compact = false
 		}
 	}
-	a.event = query.Get("event")
-	if a.event == " " || a.event == "" {
-		a.event = "started"
+	a.Event = query.Get("event")
+	if a.Event == " " || a.Event == "" {
+		a.Event = "started"
 	}
 
-	a.requestContext.redisClient = peerStore.OpenClient()
+	a.RequestContext.redisClient = peerStore.OpenClient()
 
 	return
 }
@@ -79,16 +85,16 @@ func GetInt(u url.Values, key string) (ui uint64, err error) {
 
 // StartedEventHandler handles whenever a peer sends the STARTED event to the
 // tracker.
-func (a *announceData) StartedEventHandler() (err error) {
+func (a *AnnounceData) StartedEventHandler() (err error) {
 	// Called upon announce when a client starts a download or creates a new
 	// torrent on the tracker. Adds a user to incomplete list in redis.
 	err = nil
 
-	if !a.infoHashExists() && a.requestContext.whitelist {
+	if !a.infoHashExists() && a.RequestContext.Whitelist {
 		err = fmt.Errorf("Torrent not authorized for use")
 		return
-	} else if !a.infoHashExists() && !a.requestContext.whitelist {
-		// If the info hash isn't in redis and we're not whitelisting, add it
+	} else if !a.infoHashExists() && !a.RequestContext.Whitelist {
+		// If the info hash isn't in redis and we're not Whitelisting, add it
 		// to Redis.
 		a.createInfoHashKey()
 	}
@@ -96,16 +102,16 @@ func (a *announceData) StartedEventHandler() (err error) {
 	keymember := ""
 	ipport := ""
 
-	if !(a.left == 0) {
-		keymember = fmt.Sprintf("%s:incomplete", a.info_hash)
-		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
+	if !(a.Left == 0) {
+		keymember = fmt.Sprintf("%s:incomplete", a.InfoHash)
+		ipport = fmt.Sprintf("%s:%d", a.IP, a.Port)
 	} else {
-		keymember = fmt.Sprintf("%s:complete", a.info_hash)
-		ipport = fmt.Sprintf("%s:%d", a.ip, a.port)
+		keymember = fmt.Sprintf("%s:complete", a.InfoHash)
+		ipport = fmt.Sprintf("%s:%d", a.IP, a.Port)
 	}
 
-	peerStore.RedisSetKeyVal(a.requestContext.redisClient, keymember, ipport)
-	if peerStore.RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
+	peerStore.RedisSetKeyVal(a.RequestContext.redisClient, keymember, ipport)
+	if peerStore.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 
@@ -117,10 +123,10 @@ func (a *announceData) StartedEventHandler() (err error) {
 // TODO(ian): This is what happened whenever the torrent client shuts down
 // gracefully, so we need to call the mysql backend and store the info and
 // remove the ipport from completed/incomplete redis kvs
-func (a *announceData) StoppedEventHandler() {
+func (a *AnnounceData) StoppedEventHandler() {
 
 	if a.infoHashExists() {
-		a.removeFromKVStorage(a.event)
+		a.removeFromKVStorage(a.Event)
 	} else {
 		return
 	}
@@ -129,7 +135,7 @@ func (a *announceData) StoppedEventHandler() {
 // CompletedEventHandler Called upon announce when a client finishes a download. Removes the
 // client from incomplete in redis and places their peer info into
 // complete.
-func (a *announceData) CompletedEventHandler() {
+func (a *AnnounceData) CompletedEventHandler() {
 
 	if !a.infoHashExists() {
 		a.createInfoHashKey()
@@ -137,29 +143,29 @@ func (a *announceData) CompletedEventHandler() {
 		a.removeFromKVStorage("incomplete")
 	}
 
-	keymember := fmt.Sprintf("%s:complete", a.info_hash)
+	keymember := fmt.Sprintf("%s:complete", a.InfoHash)
 	// TODO(ian): DRY!
-	ipport := fmt.Sprintf("%s:%s", a.ip, a.port)
-	if peerStore.RedisSetKeyIfNotExists(a.requestContext.redisClient, keymember, ipport) {
-		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.info_hash)
+	ipport := fmt.Sprintf("%s:%s", a.IP, a.Port)
+	if peerStore.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.InfoHash)
 	}
 }
 
-func (a *announceData) removeFromKVStorage(subkey string) {
+func (a *AnnounceData) removeFromKVStorage(subkey string) {
 	// Remove the subkey from the kv storage.
-	ipport := fmt.Sprintf("%s:%d", a.ip, a.port)
-	keymember := fmt.Sprintf("%s:%s", a.info_hash, subkey)
+	ipport := fmt.Sprintf("%s:%d", a.IP, a.Port)
+	keymember := fmt.Sprintf("%s:%s", a.InfoHash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	peerStore.RedisRemoveKeysValue(a.requestContext.redisClient, keymember, ipport)
+	peerStore.RedisRemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
 }
 
-func (a *announceData) infoHashExists() bool {
-	return peerStore.RedisGetBoolKeyVal(a.info_hash)
+func (a *AnnounceData) infoHashExists() bool {
+	return peerStore.RedisGetBoolKeyVal(a.InfoHash)
 }
 
-func (a *announceData) createInfoHashKey() {
-	peerStore.CreateNewTorrentKey(a.info_hash)
+func (a *AnnounceData) createInfoHashKey() {
+	peerStore.CreateNewTorrentKey(a.InfoHash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a
