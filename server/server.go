@@ -14,6 +14,7 @@ import (
 type applicationContext struct {
 	config       config.ConfigStruct
 	trackerLevel int
+    peerStoreClient *peerStore.PeerStore
 }
 
 type scrapeData struct {
@@ -46,19 +47,21 @@ var ANNOUNCE_URL = "/announce"
 // FIELDS The fields that we expect from a peer upon info hash lookup
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
-func worker(data *AnnounceData) []string {
-	if peerStore.RedisGetBoolKeyVal(data.InfoHash) {
-		x := peerStore.RedisGetKeyVal(data.InfoHash)
+func (app *applicationContext) worker(data *AnnounceData) []string {
+	if app.peerStoreClient.KeyExists(data.InfoHash) {
+		x := peerStore.GetKeyVal(data.InfoHash)
 
-        peerStore.RedisSetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
+        app.peerStoreClient.RedisSetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
 
 		return x
 
-	}
+	} else {
+        app.peerStoreClient.SetKV(data.InfoHash)
+    }
 
-	peerStore.CreateNewTorrentKey(data.InfoHash)
-	return worker(data)
+	return app.worker(data)
 }
+
 func (app *applicationContext) handleStatsTracking(data *AnnounceData) {
 	db.UpdateStats(data.Uploaded, data.Downloaded)
 
@@ -108,8 +111,8 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	}
 
 	if data.Event == "started" || data.Event == "completed" {
-		worker(data)
-		x := peerStore.RedisGetAllPeers(data.InfoHash)
+		app.worker(data)
+		x := app.peerStoreClient.GetAllPeers(data.InfoHash)
 
 		if len(x) > 0 {
 			response := formatResponseData(x, data)
@@ -155,9 +158,12 @@ func writeResponse(w http.ResponseWriter, values string) {
 
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
+    peerStore := new(peerStore.RedisStore)
+
 	app := applicationContext{
 		config:       config.LoadConfig(),
 		trackerLevel: RATIOLESS,
+        peerStoreClient: peerStore.redisStore,
 	}
 
 	mux := http.NewServeMux()
