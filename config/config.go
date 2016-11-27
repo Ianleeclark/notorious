@@ -24,6 +24,7 @@ func LoadConfig() ConfigStruct {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../")
 	viper.AddConfigPath("/etc/")
+	viper.AddConfigPath("$GOPATH/src/github.com/GrappigPanda/notorious/")
 
 	err := viper.ReadInConfig()
 	if err != nil {

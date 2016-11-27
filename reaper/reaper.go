@@ -2,7 +2,7 @@ package reaper
 
 import (
 	"fmt"
-	"github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/database/mysql"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 	"gopkg.in/redis.v3"
 	"strconv"
@@ -83,7 +83,7 @@ func StartReapingScheduler(waitTime time.Duration) {
 			addedBy := new(string)
 			dateAdded := new(int64)
 
-			x, err := db.GetWhitelistedTorrents(nil)
+			x, err := mysql.GetWhitelistedTorrents(nil)
 			for x.Next() {
 				x.Scan(infoHash, name, addedBy, dateAdded)
 				r.CreateNewTorrentKey(nil, *infoHash)
