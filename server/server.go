@@ -17,6 +17,7 @@ type applicationContext struct {
 	config          config.ConfigStruct
 	trackerLevel    int
 	peerStoreClient peerStore.PeerStore
+	dbPool          *gorm.DB
 }
 
 type scrapeData struct {
@@ -64,21 +65,21 @@ func (app *applicationContext) worker(data *a.AnnounceData) []string {
 }
 
 func (app *applicationContext) handleStatsTracking(data *a.AnnounceData) {
-	db.UpdateStats(data.Uploaded, data.Downloaded)
+	db.UpdateStats(app.dbPool, data.Uploaded, data.Downloaded)
 
 	if app.trackerLevel > a.RATIOLESS {
-		db.UpdatePeerStats(data.Uploaded, data.Downloaded, data.IP)
+		db.UpdatePeerStats(app.dbPool, data.Uploaded, data.Downloaded, data.IP)
 	}
 
 	if data.Event == "completed" {
-		db.UpdateTorrentStats(1, -1)
+		db.UpdateTorrentStats(app.dbPool, 1, -1)
 		return
 	} else if data.Left == 0 {
 		// TODO(ian): Don't assume the peer is already in the DB
-		db.UpdateTorrentStats(1, -1)
+		db.UpdateTorrentStats(app.dbPool, 1, -1)
 		return
 	} else if data.Event == "started" {
-		db.UpdateTorrentStats(0, 1)
+		db.UpdateTorrentStats(app.dbPool, 0, 1)
 	}
 }
 
@@ -129,21 +130,19 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	app.handleStatsTracking(data)
 }
 
-func scrapeHandlerCurried(dbConn *gorm.DB) func(w http.ResponseWriter, req *http.Request) {
-	return func(w http.ResponseWriter, req *http.Request) {
-		query := req.URL.Query()
+func (app *applicationContext) scrapeHandler(w http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
 
-		infoHash := query.Get("InfoHash")
-		if infoHash == "" {
-			failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
-			writeErrorResponse(w, failMsg)
-		} else {
-			torrentData := db.ScrapeTorrent(dbConn, infoHash)
-			writeResponse(w, formatScrapeResponse(torrentData))
-		}
-
-		return
+	infoHash := query.Get("InfoHash")
+	if infoHash == "" {
+		failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
+		writeErrorResponse(w, failMsg)
+	} else {
+		torrentData := db.ScrapeTorrent(app.dbPool, infoHash)
+		writeResponse(w, formatScrapeResponse(torrentData))
 	}
+
+	return
 }
 
 func writeErrorResponse(w http.ResponseWriter, failMsg string) {
@@ -157,22 +156,21 @@ func writeResponse(w http.ResponseWriter, values string) {
 
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
-	app := applicationContext{
-		config:          config.LoadConfig(),
-		trackerLevel:    a.RATIOLESS,
-		peerStoreClient: new(peerStore.RedisStore),
-	}
-
-	mux := http.NewServeMux()
-
 	dbConn, err := db.OpenConnection()
 	if err != nil {
 		panic("Failed to open connection to remote database server.")
 	}
 
-	scrapeHandler := scrapeHandlerCurried(dbConn)
+	app := applicationContext{
+		config:          config.LoadConfig(),
+		trackerLevel:    a.RATIOLESS,
+		peerStoreClient: new(peerStore.RedisStore),
+		dbPool:          dbConn,
+	}
+
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", app.requestHandler)
-	mux.HandleFunc("/scrape", scrapeHandler)
+	mux.HandleFunc("/scrape", app.scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }
