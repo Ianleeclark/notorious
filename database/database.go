@@ -7,6 +7,13 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
+// AddWhitelistedTorrent handles adding a new whitelisted torrent into the
+// database.
+func (t *White_Torrent) AddWhitelistedTorrent(db *gorm.DB) bool {
+	db.Create(t)
+	return db.NewRecord(t)
+}
+
 // SQLStore is the base implementation for a database which will be used to
 // store stats and retrieve whitelisted torrents.
 type SQLStore interface {
