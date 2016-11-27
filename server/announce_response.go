@@ -3,9 +3,9 @@ package server
 import (
 	"bytes"
 	"fmt"
+	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/bencode"
 	"github.com/GrappigPanda/notorious/database"
-	. "github.com/GrappigPanda/notorious/announce"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 	"net"
 	"strconv"

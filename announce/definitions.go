@@ -14,8 +14,8 @@ const (
 type AnnounceData struct {
 	InfoHash string //20 byte sha1 hash
 	PeerID   string //max len 20
-	IP        string //optional
-	Event     string // TorrentEvent
+	IP       string //optional
+	Event    string // TorrentEvent
 
 	Port uint64 // port number the peer is listening
 	// on

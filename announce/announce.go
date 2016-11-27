@@ -2,11 +2,11 @@ package announce
 
 import (
 	"fmt"
+	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-    r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 )
 
 func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {

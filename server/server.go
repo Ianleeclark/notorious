@@ -2,20 +2,20 @@ package server
 
 import (
 	"fmt"
+	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
-	. "github.com/GrappigPanda/notorious/announce"
-	"github.com/GrappigPanda/notorious/server/peerStore"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/server/peerStore"
 	"net/http"
 )
 
 // applicationContext houses data necessary for the handler to properly
 // function as the application is desired.
 type applicationContext struct {
-	config       config.ConfigStruct
-	trackerLevel int
-    peerStoreClient peerStore.PeerStore
+	config          config.ConfigStruct
+	trackerLevel    int
+	peerStoreClient peerStore.PeerStore
 }
 
 type scrapeData struct {
@@ -52,13 +52,13 @@ func (app *applicationContext) worker(data *AnnounceData) []string {
 	if app.peerStoreClient.KeyExists(data.InfoHash) {
 		x := app.peerStoreClient.GetKeyVal(data.InfoHash)
 
-        app.peerStoreClient.SetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
+		app.peerStoreClient.SetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
 
 		return x
 
 	} else {
-        r.CreateNewTorrentKey(data.InfoHash)
-    }
+		r.CreateNewTorrentKey(data.InfoHash)
+	}
 
 	return app.worker(data)
 }
@@ -90,7 +90,7 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 
 	}
 
-    data.RequestContext.Whitelist = app.config.Whitelist
+	data.RequestContext.Whitelist = app.config.Whitelist
 
 	fmt.Printf("Event: %s from host %s on port %v\n", data.Event, data.IP, data.Port)
 
@@ -160,9 +160,9 @@ func writeResponse(w http.ResponseWriter, values string) {
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
 	app := applicationContext{
-		config:       config.LoadConfig(),
-		trackerLevel: RATIOLESS,
-        peerStoreClient: new(peerStore.RedisStore),
+		config:          config.LoadConfig(),
+		trackerLevel:    RATIOLESS,
+		peerStoreClient: new(peerStore.RedisStore),
 	}
 
 	mux := http.NewServeMux()
