@@ -7,6 +7,7 @@ import (
 	"github.com/GrappigPanda/notorious/database"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
 	"github.com/GrappigPanda/notorious/server/peerStore"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
@@ -128,23 +129,21 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	app.handleStatsTracking(data)
 }
 
-func scrapeHandler(w http.ResponseWriter, req *http.Request) {
-	query := req.URL.Query()
-	dbConn, err := db.OpenConnection()
-	if err != nil {
-		panic(err)
-	}
+func scrapeHandlerCurried(dbConn *gorm.DB) func(w http.ResponseWriter, req *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		query := req.URL.Query()
 
-	infoHash := query.Get("InfoHash")
-	if infoHash == "" {
-		failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
-		writeErrorResponse(w, failMsg)
-	} else {
-		torrentData := db.ScrapeTorrent(dbConn, infoHash)
-		writeResponse(w, formatScrapeResponse(torrentData))
-	}
+		infoHash := query.Get("InfoHash")
+		if infoHash == "" {
+			failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
+			writeErrorResponse(w, failMsg)
+		} else {
+			torrentData := db.ScrapeTorrent(dbConn, infoHash)
+			writeResponse(w, formatScrapeResponse(torrentData))
+		}
 
-	return
+		return
+	}
 }
 
 func writeErrorResponse(w http.ResponseWriter, failMsg string) {
@@ -165,6 +164,13 @@ func RunServer() {
 	}
 
 	mux := http.NewServeMux()
+
+	dbConn, err := db.OpenConnection()
+	if err != nil {
+		panic("Failed to open connection to remote database server.")
+	}
+
+	scrapeHandler := scrapeHandlerCurried(dbConn)
 
 	mux.HandleFunc("/announce", app.requestHandler)
 	mux.HandleFunc("/scrape", scrapeHandler)

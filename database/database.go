@@ -103,7 +103,7 @@ func UpdateStats(uploaded uint64, downloaded uint64) {
 	return
 }
 
-// UpdateStats Handles updating statistics relevant to our tracker.
+// UpdateTorrentStats Handles updating statistics relevant to our tracker.
 func UpdateTorrentStats(seederDelta int64, leecherDelta int64) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -121,6 +121,8 @@ func UpdateTorrentStats(seederDelta int64, leecherDelta int64) {
 	return
 }
 
+// UpdatePeerStats handles updating peer info like hits per ip, downloaded
+// amount, uploaded amounts.
 func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	db, err := OpenConnection()
 	if err != nil {
@@ -137,7 +139,7 @@ func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	return
 }
 
-// GetWhitelistedTorrent allows us to retrieve all of the white listed
+// GetWhitelistedTorrents allows us to retrieve all of the white listed
 // torrents. Mostly used for populating the Redis KV storage with all of our
 // whitelisted torrents.
 func GetWhitelistedTorrents() (x *sql.Rows, err error) {
