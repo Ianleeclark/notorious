@@ -55,7 +55,7 @@ func GetTorrent(infoHash string) (db *gorm.DB, t *Torrent, err error) {
 }
 
 // GetWhitelistedTorrent Retrieves a single whitelisted torrent by its infoHash
-func GetWhitelistedTorrent(infoHash string) (db *gorm.DB, t *White_Torrent, err error) {
+func GetWhitelistedTorrent(db *gorm.DB, infoHash string) (t *White_Torrent, err error) {
 	db = assertOpenConnection(db)
 
 	t = &White_Torrent{}
