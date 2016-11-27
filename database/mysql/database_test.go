@@ -25,7 +25,7 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	if !newTorrent.AddWhitelistedTorrent(nil) {
+	if !newTorrent.AddWhitelistedTorrent(DBCONN) {
 		t.Fatalf("Failed to Add a whitelisted torrent")
 	}
 }
@@ -45,10 +45,10 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent(nil)
-	newTorrent2.AddWhitelistedTorrent(nil)
+	newTorrent.AddWhitelistedTorrent(DBCONN)
+	newTorrent2.AddWhitelistedTorrent(DBCONN)
 
-	_, err := GetWhitelistedTorrents(nil)
+	_, err := GetWhitelistedTorrents(DBCONN)
 	if err != nil {
 		t.Fatalf("Failed to get all whitelisted torrents: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent(nil)
+	newTorrent.AddWhitelistedTorrent(DBCONN)
 
 	retval, err := GetWhitelistedTorrent(nil, newTorrent.InfoHash)
 	if err != nil {
