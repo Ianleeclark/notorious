@@ -24,7 +24,7 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	if !newTorrent.AddWhitelistedTorrent() {
+	if !newTorrent.AddWhitelistedTorrent(nil) {
 		t.Fatalf("Failed to Add a whitelisted torrent")
 	}
 }
@@ -44,10 +44,10 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent()
-	newTorrent2.AddWhitelistedTorrent()
+	newTorrent.AddWhitelistedTorrent(nil)
+	newTorrent2.AddWhitelistedTorrent(nil)
 
-	_, err := GetWhitelistedTorrents()
+	_, err := GetWhitelistedTorrents(nil)
 	if err != nil {
 		t.Fatalf("Failed to get all whitelisted torrents: %v", err)
 	}
@@ -61,9 +61,9 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent()
+	newTorrent.AddWhitelistedTorrent(nil)
 
-	retval, err := GetWhitelistedTorrent(newTorrent.InfoHash)
+	retval, err := GetWhitelistedTorrent(nil, newTorrent.InfoHash)
 	if err != nil {
 		t.Fatalf("Failed to GetWhitelistedTorrent: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestUpdateStats(t *testing.T) {
 	}
 	DBCONN.Save(&newStats)
 
-	UpdateStats(20, 5)
+	UpdateStats(nil, 20, 5)
 
 	retval := &TrackerStats{}
 	DBCONN.First(&retval)
@@ -118,7 +118,7 @@ func TestUpdatePeerStats(t *testing.T) {
 
 	DBCONN.Save(&newPeer)
 
-	UpdatePeerStats(20, 5, "127.0.0.1")
+	UpdatePeerStats(nil, 20, 5, "127.0.0.1")
 
 	retval := &Peer_Stats{}
 	DBCONN.First(&retval)

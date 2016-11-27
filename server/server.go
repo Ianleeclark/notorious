@@ -2,20 +2,22 @@ package server
 
 import (
 	"fmt"
+	a "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
-	. "github.com/GrappigPanda/notorious/announce"
-	"github.com/GrappigPanda/notorious/server/peerStore"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/server/peerStore"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
 // applicationContext houses data necessary for the handler to properly
 // function as the application is desired.
 type applicationContext struct {
-	config       config.ConfigStruct
-	trackerLevel int
-    peerStoreClient peerStore.PeerStore
+	config          config.ConfigStruct
+	trackerLevel    int
+	peerStoreClient peerStore.PeerStore
+	dbPool          *gorm.DB
 }
 
 type scrapeData struct {
@@ -32,65 +34,64 @@ type scrapeResponse struct {
 // TorrentResponseData models what is sent back to the peer upon a succesful
 // info hash lookup.
 type TorrentResponseData struct {
-	interval     int
-	min_interval int
-	tracker_id   string
-	completed    int
-	incomplete   int
-	peers        interface{}
+	interval    int
+	minInterval int
+	trackerID   string
+	completed   int
+	incomplete  int
+	peers       interface{}
 }
 
-// ANNOUNCE_URL The announce path for the http calls to reach.
-var ANNOUNCE_URL = "/announce"
+// AnnounceURL The announce path for the http calls to reach.
+var AnnounceURL = "/announce"
 
 // TODO(ian): Set this expireTime to a config-loaded value.
 // expireTime := 5 * 60
 // FIELDS The fields that we expect from a peer upon info hash lookup
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
-func (app *applicationContext) worker(data *AnnounceData) []string {
+func (app *applicationContext) worker(data *a.AnnounceData) []string {
 	if app.peerStoreClient.KeyExists(data.InfoHash) {
 		x := app.peerStoreClient.GetKeyVal(data.InfoHash)
 
-        app.peerStoreClient.SetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
+		app.peerStoreClient.SetIPMember(data.InfoHash, fmt.Sprintf("%s:%s", data.IP, data.Port))
 
 		return x
 
-	} else {
-        r.CreateNewTorrentKey(data.InfoHash)
-    }
+	}
 
+	r.CreateNewTorrentKey(nil, data.InfoHash)
 	return app.worker(data)
 }
 
-func (app *applicationContext) handleStatsTracking(data *AnnounceData) {
-	db.UpdateStats(data.Uploaded, data.Downloaded)
+func (app *applicationContext) handleStatsTracking(data *a.AnnounceData) {
+	db.UpdateStats(app.dbPool, data.Uploaded, data.Downloaded)
 
-	if app.trackerLevel > RATIOLESS {
-		db.UpdatePeerStats(data.Uploaded, data.Downloaded, data.IP)
+	if app.trackerLevel > a.RATIOLESS {
+		db.UpdatePeerStats(app.dbPool, data.Uploaded, data.Downloaded, data.IP)
 	}
 
 	if data.Event == "completed" {
-		db.UpdateTorrentStats(1, -1)
+		db.UpdateTorrentStats(app.dbPool, 1, -1)
 		return
 	} else if data.Left == 0 {
 		// TODO(ian): Don't assume the peer is already in the DB
-		db.UpdateTorrentStats(1, -1)
+		db.UpdateTorrentStats(app.dbPool, 1, -1)
 		return
 	} else if data.Event == "started" {
-		db.UpdateTorrentStats(0, 1)
+		db.UpdateTorrentStats(app.dbPool, 0, 1)
 	}
 }
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
-	data := new(AnnounceData)
+	data := new(a.AnnounceData)
 	err := data.ParseAnnounceData(req)
 	if err != nil {
 		panic(err)
 
 	}
 
-    data.RequestContext.Whitelist = app.config.Whitelist
+	data.RequestContext.Whitelist = app.config.Whitelist
 
 	fmt.Printf("Event: %s from host %s on port %v\n", data.Event, data.IP, data.Port)
 
@@ -129,19 +130,15 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	app.handleStatsTracking(data)
 }
 
-func scrapeHandler(w http.ResponseWriter, req *http.Request) {
+func (app *applicationContext) scrapeHandler(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	dbConn, err := db.OpenConnection()
-	if err != nil {
-		panic(err)
-	}
 
 	infoHash := query.Get("InfoHash")
 	if infoHash == "" {
 		failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
 		writeErrorResponse(w, failMsg)
 	} else {
-		torrentData := db.ScrapeTorrent(dbConn, infoHash)
+		torrentData := db.ScrapeTorrent(app.dbPool, infoHash)
 		writeResponse(w, formatScrapeResponse(torrentData))
 	}
 
@@ -159,15 +156,21 @@ func writeResponse(w http.ResponseWriter, values string) {
 
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
+	dbConn, err := db.OpenConnection()
+	if err != nil {
+		panic("Failed to open connection to remote database server.")
+	}
+
 	app := applicationContext{
-		config:       config.LoadConfig(),
-		trackerLevel: RATIOLESS,
-        peerStoreClient: new(peerStore.RedisStore),
+		config:          config.LoadConfig(),
+		trackerLevel:    a.RATIOLESS,
+		peerStoreClient: new(peerStore.RedisStore),
+		dbPool:          dbConn,
 	}
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", app.requestHandler)
-	mux.HandleFunc("/scrape", scrapeHandler)
+	mux.HandleFunc("/scrape", app.scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }

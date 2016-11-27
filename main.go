@@ -18,6 +18,5 @@ func Init() {
 }
 
 func main() {
-	Init()
 	server.RunServer()
 }

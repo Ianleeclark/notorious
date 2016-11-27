@@ -9,18 +9,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// formatConnectStrings concatenates the data from the config file into a
-// usable MySQL connection string.
-func formatConnectString(c config.ConfigStruct) string {
-	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
-		c.MySQLUser,
-		c.MySQLPass,
-		c.MySQLHost,
-		c.MySQLPort,
-		c.MySQLDB,
-	)
-}
-
 // OpenConnection does as its name dictates and opens a connection to the
 // MysqlHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
@@ -36,6 +24,8 @@ func OpenConnection() (db *gorm.DB, err error) {
 
 // InitDB initializes database tables.
 func InitDB(db *gorm.DB) {
+	db = assertOpenConnection(db)
+
 	db.CreateTable(&White_Torrent{})
 	db.CreateTable(&Torrent{})
 	db.CreateTable(&TrackerStats{})
@@ -44,11 +34,8 @@ func InitDB(db *gorm.DB) {
 
 // AddWhitelistedTorrent adds a torrent to the whitelist so that they may be
 // used by the tracker in the future.
-func (t *White_Torrent) AddWhitelistedTorrent() bool {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+func (t *White_Torrent) AddWhitelistedTorrent(db *gorm.DB) bool {
+	db = assertOpenConnection(db)
 
 	db.Create(t)
 	return db.NewRecord(t)
@@ -57,11 +44,9 @@ func (t *White_Torrent) AddWhitelistedTorrent() bool {
 // GetTorrent retrieves a torrent by its infoHash from the generic torrent
 // table in the database. Note: there's also a whitelisted torrent table
 // (`white_torrent`).
-func GetTorrent(infoHash string) (t *Torrent, err error) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+func GetTorrent(infoHash string) (db *gorm.DB, t *Torrent, err error) {
+	db = assertOpenConnection(db)
+
 	t = &Torrent{}
 
 	db.Where("info_hash = ?", infoHash).Find(&t)
@@ -70,11 +55,9 @@ func GetTorrent(infoHash string) (t *Torrent, err error) {
 }
 
 // GetWhitelistedTorrent Retrieves a single whitelisted torrent by its infoHash
-func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+func GetWhitelistedTorrent(db *gorm.DB, infoHash string) (t *White_Torrent, err error) {
+	db = assertOpenConnection(db)
+
 	t = &White_Torrent{}
 
 	x := db.Where("info_hash = ?", infoHash).First(&t)
@@ -86,11 +69,8 @@ func GetWhitelistedTorrent(infoHash string) (t *White_Torrent, err error) {
 }
 
 // UpdateStats Handles updating statistics relevant to our tracker.
-func UpdateStats(uploaded uint64, downloaded uint64) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+func UpdateStats(db *gorm.DB, uploaded uint64, downloaded uint64) {
+	db = assertOpenConnection(db)
 
 	ts := &TrackerStats{}
 	db.First(&ts)
@@ -103,12 +83,9 @@ func UpdateStats(uploaded uint64, downloaded uint64) {
 	return
 }
 
-// UpdateStats Handles updating statistics relevant to our tracker.
-func UpdateTorrentStats(seederDelta int64, leecherDelta int64) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+// UpdateTorrentStats Handles updating statistics relevant to our tracker.
+func UpdateTorrentStats(db *gorm.DB, seederDelta int64, leecherDelta int64) {
+	db = assertOpenConnection(db)
 
 	t := &Torrent{}
 	db.First(&t)
@@ -121,11 +98,10 @@ func UpdateTorrentStats(seederDelta int64, leecherDelta int64) {
 	return
 }
 
-func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+// UpdatePeerStats handles updating peer info like hits per ip, downloaded
+// amount, uploaded amounts.
+func UpdatePeerStats(db *gorm.DB, uploaded uint64, downloaded uint64, ip string) {
+	db = assertOpenConnection(db)
 
 	ps := &Peer_Stats{Ip: ip}
 	db.First(&ps)
@@ -137,14 +113,11 @@ func UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	return
 }
 
-// GetWhitelistedTorrent allows us to retrieve all of the white listed
+// GetWhitelistedTorrents allows us to retrieve all of the white listed
 // torrents. Mostly used for populating the Redis KV storage with all of our
 // whitelisted torrents.
-func GetWhitelistedTorrents() (x *sql.Rows, err error) {
-	db, err := OpenConnection()
-	if err != nil {
-		err = err
-	}
+func GetWhitelistedTorrents(db *gorm.DB) (x *sql.Rows, err error) {
+	db = assertOpenConnection(db)
 
 	x, err = db.Table("white_torrents").Rows()
 	if err != nil {
@@ -156,6 +129,35 @@ func GetWhitelistedTorrents() (x *sql.Rows, err error) {
 
 // ScrapeTorrent supports the Scrape convention
 func ScrapeTorrent(db *gorm.DB, infoHash string) (torrent *Torrent) {
+	db = assertOpenConnection(db)
+
 	db.Where("info_hash = ?", infoHash).First(&torrent)
 	return
+}
+
+// formatConnectStrings concatenates the data from the config file into a
+// usable MySQL connection string.
+func formatConnectString(c config.ConfigStruct) string {
+	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
+		c.MySQLUser,
+		c.MySQLPass,
+		c.MySQLHost,
+		c.MySQLPort,
+		c.MySQLDB,
+	)
+}
+
+// assertOpenConnection handles asserting a connection passed into a sql
+// function is open, not nil. If nil, we'll create a new connection.
+func assertOpenConnection(db *gorm.DB) *gorm.DB {
+	var err error
+
+	if db == nil {
+		db, err = OpenConnection()
+		if err != nil {
+			err = err
+		}
+	}
+
+	return db
 }

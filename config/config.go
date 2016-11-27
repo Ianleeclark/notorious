@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/spf13/viper"
-        "strconv"
+	"strconv"
 )
 
 // ConfigStruct holds the values that our config file holds
@@ -25,20 +25,20 @@ func LoadConfig() ConfigStruct {
 	viper.AddConfigPath("../")
 	viper.AddConfigPath("/etc/")
 
-        err := viper.ReadInConfig()
-        if err != nil {
-                panic("Failed to open config file")
-        }
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic("Failed to open config file")
+	}
 
-        if viper.GetBool("UseEnvVariables") == true {
-                viper.AutomaticEnv()
-                viper.BindEnv("mysqluser")
-        }
+	if viper.GetBool("UseEnvVariables") == true {
+		viper.AutomaticEnv()
+		viper.BindEnv("mysqluser")
+	}
 
-        whitelist, err := strconv.ParseBool(viper.Get("whitelist").(string))
-        if err != nil {
-                whitelist = false
-        }
+	whitelist, err := strconv.ParseBool(viper.Get("whitelist").(string))
+	if err != nil {
+		whitelist = false
+	}
 
 	if viper.Get("MySQLPass").(string) != "" {
 		return ConfigStruct{
