@@ -86,7 +86,7 @@ func StartReapingScheduler(waitTime time.Duration) {
 			x, err := db.GetWhitelistedTorrents()
 			for x.Next() {
 				x.Scan(infoHash, name, addedBy, dateAdded)
-				r.CreateNewTorrentKey(*infoHash)
+				r.CreateNewTorrentKey(nil, *infoHash)
 			}
 
 			// Start the actual peer reaper.

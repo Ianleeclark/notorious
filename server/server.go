@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	. "github.com/GrappigPanda/notorious/announce"
+	a "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
 	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
@@ -32,23 +32,23 @@ type scrapeResponse struct {
 // TorrentResponseData models what is sent back to the peer upon a succesful
 // info hash lookup.
 type TorrentResponseData struct {
-	interval     int
-	min_interval int
-	tracker_id   string
-	completed    int
-	incomplete   int
-	peers        interface{}
+	interval    int
+	minInterval int
+	trackerID   string
+	completed   int
+	incomplete  int
+	peers       interface{}
 }
 
-// ANNOUNCE_URL The announce path for the http calls to reach.
-var ANNOUNCE_URL = "/announce"
+// AnnounceURL The announce path for the http calls to reach.
+var AnnounceURL = "/announce"
 
 // TODO(ian): Set this expireTime to a config-loaded value.
 // expireTime := 5 * 60
 // FIELDS The fields that we expect from a peer upon info hash lookup
 var FIELDS = []string{"port", "uploaded", "downloaded", "left", "event", "compact"}
 
-func (app *applicationContext) worker(data *AnnounceData) []string {
+func (app *applicationContext) worker(data *a.AnnounceData) []string {
 	if app.peerStoreClient.KeyExists(data.InfoHash) {
 		x := app.peerStoreClient.GetKeyVal(data.InfoHash)
 
@@ -56,17 +56,16 @@ func (app *applicationContext) worker(data *AnnounceData) []string {
 
 		return x
 
-	} else {
-		r.CreateNewTorrentKey(data.InfoHash)
 	}
 
+	r.CreateNewTorrentKey(nil, data.InfoHash)
 	return app.worker(data)
 }
 
-func (app *applicationContext) handleStatsTracking(data *AnnounceData) {
+func (app *applicationContext) handleStatsTracking(data *a.AnnounceData) {
 	db.UpdateStats(data.Uploaded, data.Downloaded)
 
-	if app.trackerLevel > RATIOLESS {
+	if app.trackerLevel > a.RATIOLESS {
 		db.UpdatePeerStats(data.Uploaded, data.Downloaded, data.IP)
 	}
 
@@ -83,7 +82,7 @@ func (app *applicationContext) handleStatsTracking(data *AnnounceData) {
 }
 
 func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.Request) {
-	data := new(AnnounceData)
+	data := new(a.AnnounceData)
 	err := data.ParseAnnounceData(req)
 	if err != nil {
 		panic(err)
@@ -161,7 +160,7 @@ func writeResponse(w http.ResponseWriter, values string) {
 func RunServer() {
 	app := applicationContext{
 		config:          config.LoadConfig(),
-		trackerLevel:    RATIOLESS,
+		trackerLevel:    a.RATIOLESS,
 		peerStoreClient: new(peerStore.RedisStore),
 	}
 

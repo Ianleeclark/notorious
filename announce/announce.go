@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// ParseAnnounceData handles getting the annunce data from a remote client and
+// parses it into an acceptable data structure.
 func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 	query := req.URL.Query()
 
@@ -161,11 +163,11 @@ func (a *AnnounceData) removeFromKVStorage(subkey string) {
 }
 
 func (a *AnnounceData) infoHashExists() bool {
-	return r.RedisGetBoolKeyVal(a.InfoHash)
+	return r.RedisGetBoolKeyVal(nil, a.InfoHash)
 }
 
 func (a *AnnounceData) createInfoHashKey() {
-	r.CreateNewTorrentKey(a.InfoHash)
+	r.CreateNewTorrentKey(nil, a.InfoHash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a
