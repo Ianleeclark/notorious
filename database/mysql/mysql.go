@@ -27,15 +27,15 @@ func OpenConnection() (db *gorm.DB, err error) {
 func InitDB(dbConn *gorm.DB) {
 	dbConn = assertOpenConnection(dbConn)
 
-	dbConn.CreateTable(&db.White_Torrent{})
+	dbConn.CreateTable(&db.WhiteTorrent{})
 	dbConn.CreateTable(&db.Torrent{})
 	dbConn.CreateTable(&db.TrackerStats{})
-	dbConn.CreateTable(&db.Peer_Stats{})
+	dbConn.CreateTable(&db.PeerStats{})
 }
 
 // GetTorrent retrieves a torrent by its infoHash from the generic torrent
 // table in the database. Note: there's also a whitelisted torrent table
-// (`white_torrent`).
+// (`WhiteTorrent`).
 func GetTorrent(dbConn *gorm.DB, infoHash string) (t *db.Torrent, err error) {
 	dbConn = assertOpenConnection(dbConn)
 
@@ -47,10 +47,10 @@ func GetTorrent(dbConn *gorm.DB, infoHash string) (t *db.Torrent, err error) {
 }
 
 // GetWhitelistedTorrent Retrieves a single whitelisted torrent by its infoHash
-func GetWhitelistedTorrent(dbConn *gorm.DB, infoHash string) (t *db.White_Torrent, err error) {
+func GetWhitelistedTorrent(dbConn *gorm.DB, infoHash string) (t *db.WhiteTorrent, err error) {
 	dbConn = assertOpenConnection(dbConn)
 
-	t = &db.White_Torrent{}
+	t = &db.WhiteTorrent{}
 
 	x := dbConn.Where("info_hash = ?", infoHash).First(&t)
 	if x.Error != nil {
@@ -95,7 +95,7 @@ func UpdateTorrentStats(dbConn *gorm.DB, seederDelta int64, leecherDelta int64) 
 func UpdatePeerStats(dbConn *gorm.DB, uploaded uint64, downloaded uint64, ip string) {
 	dbConn = assertOpenConnection(dbConn)
 
-	ps := &db.Peer_Stats{Ip: ip}
+	ps := &db.PeerStats{Ip: ip}
 	dbConn.First(&ps)
 	dbConn.Model(&ps).UpdateColumn(map[string]interface{}{
 		"Uploaded":   ps.Uploaded + int64(uploaded),
