@@ -2,7 +2,7 @@ package announce
 
 import (
 	"fmt"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -69,7 +69,7 @@ func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 		a.Event = "started"
 	}
 
-	a.RequestContext.redisClient = r.OpenClient()
+	a.RequestContext.redisClient = redisPeerStore.OpenClient()
 
 	return
 }
@@ -116,8 +116,8 @@ func (a *AnnounceData) StartedEventHandler() (err error) {
 		ipport = fmt.Sprintf("%s:%d", a.IP, a.Port)
 	}
 
-	r.RedisSetKeyVal(a.RequestContext.redisClient, keymember, ipport)
-	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	redisPeerStore.SetKeyVal(a.RequestContext.redisClient, keymember, ipport)
+	if redisPeerStore.SetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 
@@ -152,7 +152,7 @@ func (a *AnnounceData) CompletedEventHandler() {
 	keymember := fmt.Sprintf("%s:complete", a.InfoHash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", a.IP, a.Port)
-	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	if redisPeerStore.SetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.InfoHash)
 	}
 }
@@ -163,15 +163,15 @@ func (a *AnnounceData) removeFromKVStorage(subkey string) {
 	keymember := fmt.Sprintf("%s:%s", a.InfoHash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	r.RedisRemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
+	redisPeerStore.RemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
 }
 
 func (a *AnnounceData) infoHashExists() bool {
-	return r.RedisGetBoolKeyVal(nil, a.InfoHash)
+	return redisPeerStore.GetBoolKeyVal(nil, a.InfoHash)
 }
 
 func (a *AnnounceData) createInfoHashKey() {
-	r.CreateNewTorrentKey(nil, a.InfoHash)
+	redisPeerStore.CreateNewTorrentKey(nil, a.InfoHash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a

@@ -6,7 +6,7 @@ import (
 	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/bencode"
 	"github.com/GrappigPanda/notorious/database"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"net"
 	"strconv"
 	"strings"
@@ -72,8 +72,8 @@ func formatResponseData(ips []string, data *AnnounceData) string {
 // string that we respond with.
 func EncodeResponse(ipport []string, data *AnnounceData) (resp string) {
 	ret := ""
-	completeCount := len(r.RedisGetKeyVal(nil, data.InfoHash))
-	incompleteCount := len(r.RedisGetKeyVal(nil, data.InfoHash))
+	completeCount := len(redisPeerStore.GetKeyVal(nil, data.InfoHash))
+	incompleteCount := len(redisPeerStore.GetKeyVal(nil, data.InfoHash))
 	ret += bencode.EncodeKV("complete", bencode.EncodeInt(completeCount))
 
 	ret += bencode.EncodeKV("incomplete", bencode.EncodeInt(incompleteCount))
