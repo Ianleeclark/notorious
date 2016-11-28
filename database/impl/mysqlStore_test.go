@@ -3,6 +3,7 @@ package sqlStoreImpl
 import (
 	. "github.com/GrappigPanda/notorious/database"
 	"testing"
+	"time"
 )
 
 var MYSQLSTORE MySQLStore
@@ -41,6 +42,7 @@ func TestPeerUpdate(t *testing.T) {
 	}
 
 	go func() { MYSQLSTORE.UpdateConsumer <- peerUpdate }()
+	time.Sleep(5 * time.Millisecond)
 
 	retval := &PeerStats{}
 	MYSQLSTORE.dbPool.Where("Ip = ?", peerUpdate.IP).Find(&retval)
