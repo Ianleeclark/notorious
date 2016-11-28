@@ -7,61 +7,79 @@ import (
 	"gopkg.in/redis.v3"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-func reapInfoHash(c *redis.Client, infoHash string, out chan int) {
+func reapInfoHash(c *redis.Client, infoHash string, out chan int, currTime int64) {
 	// Fan-out method to reap peers who have outlived their TTL.
 	keys, err := c.SMembers(infoHash).Result()
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	count := 0
-	currTime := int64(time.Now().UTC().Unix())
 
 	for i := range keys {
 		if x := strings.Split(keys[i], ":"); len(x) != 3 {
 			c.SRem(infoHash, keys[i])
-
 		} else {
-			endTime := convertTimeToUnixTimeStamp(x[2])
+			endTime, err := convertTimeToUnixTimeStamp(x[2])
+			if err != nil {
+				panic("alskdj")
+			}
+
 			if currTime >= endTime {
 				c.SRem(infoHash, keys[i])
 				count++
 			}
 		}
+
 	}
 
 	out <- count
 }
 
-func convertTimeToUnixTimeStamp(time string) (endTime int64) {
-	endTime, err := strconv.ParseInt(time, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-
-	return
+func convertTimeToUnixTimeStamp(time string) (endTime int64, err error) {
+	return strconv.ParseInt(time, 10, 64)
 }
 
-func reapPeers() (peersReaped int) {
+func reapPeers(currTime int64) int {
 	// Fans out each info in `keys *` from the Redis DB to the `reapInfoHash`
 	// function.
-	client := OpenClient()
+	client := redisPeerStore.OpenClient()
 
 	keys, err := getAllKeys(client, "*")
 	if err != nil {
-		panic(err)
+		return 0
 	}
 
-	out := make(chan int)
+	out := make(chan int, 100000)
+	timeout := make(chan bool, 5)
+
+	peersReaped := 0
+
+	go func() {
+		select {
+		case count := <-out:
+			peersReaped += count
+		}
+	}()
+
+	var wg sync.WaitGroup
+
 	for i := range keys {
-		go reapInfoHash(client, keys[i], out)
-		peersReaped += <-out
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) {
+			reapInfoHash(client, keys[i], out, currTime)
+			wg.Done()
+		}(&wg)
 	}
 
-	return
+	wg.Wait()
+	timeout <- true
+
+	return peersReaped
 }
 
 // StartReapingScheduler hoists a seperate timer process and at the end of each
@@ -92,7 +110,7 @@ func StartReapingScheduler(waitTime time.Duration) {
 			// Start the actual peer reaper.
 			time.Sleep(waitTime)
 			fmt.Println("Starting peer reaper")
-			reapedPeers += reapPeers()
+			reapedPeers += reapPeers(int64(time.Now().UTC().Unix()))
 			fmt.Printf("%v peers reaped total\n", reapedPeers)
 		}
 	}()
