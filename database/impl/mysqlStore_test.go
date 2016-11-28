@@ -45,7 +45,7 @@ func TestPeerUpdate(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	retval := &PeerStats{}
-	MYSQLSTORE.dbPool.Where("ip = ?", peerUpdate.IP).Find(&retval)
+	MYSQLSTORE.dbPool.Where("Ip = ?", peerUpdate.IP).Find(&retval)
 
 	if retval.Downloaded != expectedReturn.Downloaded {
 		t.Fatalf("Expected %v, got %v",
