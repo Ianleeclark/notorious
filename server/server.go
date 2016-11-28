@@ -6,8 +6,8 @@ import (
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/impl"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
-	"github.com/GrappigPanda/notorious/server/peerStore"
+	"github.com/GrappigPanda/notorious/peerStore"
+	"github.com/GrappigPanda/notorious/peerStore/impl"
 	"net/http"
 )
 
@@ -60,7 +60,7 @@ func (app *applicationContext) worker(data *a.AnnounceData) []string {
 
 	}
 
-	r.CreateNewTorrentKey(nil, data.InfoHash)
+	app.peerStoreClient.CreateNewTorrentKey(data.InfoHash)
 	return app.worker(data)
 }
 
@@ -159,7 +159,7 @@ func RunServer() {
 	app := applicationContext{
 		config:          config.LoadConfig(),
 		trackerLevel:    a.RATIOLESS,
-		peerStoreClient: new(peerStore.RedisStore),
+		peerStoreClient: new(redisPeerStoreImpl.RedisStore),
 		sqlObj:          new(sqlStoreImpl.MySQLStore),
 	}
 
