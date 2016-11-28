@@ -29,37 +29,41 @@ func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 	} else {
 		a.IP = query.Get(req.RemoteAddr)
 	}
+
 	a.PeerID = query.Get("peer_id")
 
 	a.Port, err = GetInt(query, "port")
 	if err != nil {
 		return fmt.Errorf("Failed to get port")
 	}
+
 	a.Downloaded, err = GetInt(query, "downloaded")
 	if err != nil {
-		err = fmt.Errorf("Failed to get downloaded byte count.")
-		return
+		a.Downloaded = 0
 	}
+
 	a.Uploaded, err = GetInt(query, "uploaded")
 	if err != nil {
-		err = fmt.Errorf("Failed to get uploaded byte count.")
-		return
+		a.Uploaded = 0
 	}
+
 	a.Left, err = GetInt(query, "left")
 	if err != nil {
-		err = fmt.Errorf("Failed to get remaining byte count.")
-		return
+		a.Left = 0
 	}
+
 	a.Numwant, err = GetInt(query, "numwant")
 	if err != nil {
 		a.Numwant = 0
 	}
+
 	if x := query.Get("compact"); x != "" {
 		a.Compact, err = strconv.ParseBool(x)
 		if err != nil {
 			a.Compact = false
 		}
 	}
+
 	a.Event = query.Get("event")
 	if a.Event == " " || a.Event == "" {
 		a.Event = "started"
