@@ -97,6 +97,7 @@ func UpdatePeerStats(dbConn *gorm.DB, uploaded uint64, downloaded uint64, ip str
 
 	ps := &db.PeerStats{Ip: ip}
 	dbConn.First(&ps)
+	fmt.Printf("%v", *ps)
 	dbConn.Model(&ps).UpdateColumn(map[string]interface{}{
 		"Uploaded":   ps.Uploaded + int64(uploaded),
 		"Downloaded": ps.Downloaded + int64(downloaded),
