@@ -122,7 +122,7 @@ func TestUpdatePeerStats(t *testing.T) {
 	UpdatePeerStats(nil, 20, 5, "127.0.0.2")
 
 	retval := &PeerStats{}
-	DBCONN.First(&retval)
+	DBCONN.Where("Ip = ?", "127.0.0.2").Find(&retval)
 
 	if retval.Downloaded != expectedReturn.Downloaded {
 		t.Fatalf("Expected %v, got %v",
