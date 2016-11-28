@@ -14,6 +14,29 @@ func (t *WhiteTorrent) AddWhitelistedTorrent(db *gorm.DB) bool {
 	return db.NewRecord(t)
 }
 
+// PeerDeltaEvent allows us to set an event to handle how we're going to update
+// teh database.
+type PeerDeltaEvent int
+
+const (
+	// PEERUPDATE represents a change to a peer, so we'll update a tracker
+	// user's ratio.
+	PEERUPDATE PeerDeltaEvent = iota
+	// TRACKERUPDATE handles updating total tracker stats
+	TRACKERUPDATE
+	// TORRENTUPDATE represents the changes to a specific torrent where we
+	// update total upload/download for the torrent itself.
+	TORRENTUPDATE
+)
+
+// PeerTrackerDelta handles holding data to be updated by the `UpdateConsumer`.
+type PeerTrackerDelta struct {
+	Uploaded   uint64
+	Downloaded uint64
+	IP         string
+	Event      PeerDeltaEvent
+}
+
 // SQLStore is the base implementation for a database which will be used to
 // store stats and retrieve whitelisted torrents.
 type SQLStore interface {
@@ -25,4 +48,5 @@ type SQLStore interface {
 	ScrapeTorrent(string) *Torrent
 	GetWhitelistedTorrents() (*sql.Rows, error)
 	UpdatePeerStats(uint64, uint64, string)
+	HandlePeerUpdates() chan PeerTrackerDelta
 }
