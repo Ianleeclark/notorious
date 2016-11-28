@@ -12,7 +12,7 @@ type Torrent struct {
 	DateAdded  int64
 }
 
-type White_Torrent struct {
+type WhiteTorrent struct {
 	id        int    `gorm:"AUTO_INCREMENT, unique, primary_key"`
 	InfoHash  string `gorm:"varchar(32), not null"`
 	Name      string `gorm:"not null"`
@@ -20,7 +20,7 @@ type White_Torrent struct {
 	DateAdded int64
 }
 
-type Peer_Stats struct {
+type PeerStats struct {
 	id         int    `gorm:"AUTO_INCREMENT, unique, primary_key"`
 	Downloaded int64  `gorm:"not null"`
 	Uploaded   int64  `gorm:"not null"`

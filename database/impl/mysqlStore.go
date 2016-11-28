@@ -25,7 +25,7 @@ func (m *MySQLStore) GetTorrent(infoHash string) (*db.Torrent, error) {
 }
 
 // GetWhitelistedTorrent wraps `mysql.GetWhitelistedTorrent`.
-func (m *MySQLStore) GetWhitelistedTorrent(infoHash string) (*db.White_Torrent, error) {
+func (m *MySQLStore) GetWhitelistedTorrent(infoHash string) (*db.WhiteTorrent, error) {
 	return mysql.GetWhitelistedTorrent(m.dbPool, infoHash)
 }
 

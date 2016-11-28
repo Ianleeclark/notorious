@@ -18,7 +18,7 @@ func TestOpenConn(t *testing.T) {
 }
 
 func TestAddWhitelistedTorrent(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123451234512345",
 		Name:      "Hello Kitty Island Adventure.exe",
 		AddedBy:   "127.0.0.1",
@@ -31,14 +31,14 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 }
 
 func TestGetWhitelistedTorrents(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure3.exe",
 		AddedBy:   "127.0.0.1",
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent2 := &White_Torrent{
+	newTorrent2 := &WhiteTorrent{
 		InfoHash:  "FFFFFFFFFFFFhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure4.exe",
 		AddedBy:   "127.0.0.1",
@@ -55,7 +55,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 }
 
 func TestGetWhitelistedTorrent(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrent",
 		Name:      "Hello Kitty Island Adventure2.exe",
 		AddedBy:   "127.0.0.1",
@@ -105,13 +105,13 @@ func TestUpdateStats(t *testing.T) {
 }
 
 func TestUpdatePeerStats(t *testing.T) {
-	expectedReturn := &Peer_Stats{
+	expectedReturn := &PeerStats{
 		Downloaded: 6,
 		Uploaded:   21,
 		Ip:         "127.0.0.1",
 	}
 
-	newPeer := &Peer_Stats{
+	newPeer := &PeerStats{
 		Downloaded: 1,
 		Uploaded:   1,
 		Ip:         "127.0.0.1",
@@ -121,7 +121,7 @@ func TestUpdatePeerStats(t *testing.T) {
 
 	UpdatePeerStats(nil, 20, 5, "127.0.0.1")
 
-	retval := &Peer_Stats{}
+	retval := &PeerStats{}
 	DBCONN.First(&retval)
 
 	if retval.Downloaded != expectedReturn.Downloaded {
@@ -146,9 +146,9 @@ func TestUpdatePeerStats(t *testing.T) {
 func TestMain(m *testing.M) {
 	DBCONN.DropTableIfExists(
 		&TrackerStats{},
-		&Peer_Stats{},
+		&PeerStats{},
 		&Torrent{},
-		&White_Torrent{},
+		&WhiteTorrent{},
 	)
 	os.Exit(m.Run())
 }

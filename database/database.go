@@ -9,7 +9,7 @@ import (
 
 // AddWhitelistedTorrent handles adding a new whitelisted torrent into the
 // database.
-func (t *White_Torrent) AddWhitelistedTorrent(db *gorm.DB) bool {
+func (t *WhiteTorrent) AddWhitelistedTorrent(db *gorm.DB) bool {
 	db.Create(t)
 	return db.NewRecord(t)
 }
@@ -19,7 +19,7 @@ func (t *White_Torrent) AddWhitelistedTorrent(db *gorm.DB) bool {
 type SQLStore interface {
 	OpenConnection() (*gorm.DB, error)
 	GetTorrent(string) (*Torrent, error)
-	GetWhitelistedTorrent(string) (*White_Torrent, error)
+	GetWhitelistedTorrent(string) (*WhiteTorrent, error)
 	UpdateStats(uint64, uint64)
 	UpdateTorrentStats(int64, int64)
 	ScrapeTorrent(string) *Torrent
