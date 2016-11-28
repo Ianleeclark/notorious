@@ -35,8 +35,8 @@ func TestPeerUpdate(t *testing.T) {
 	MYSQLSTORE.dbPool.Save(&newPeer)
 
 	peerUpdate := PeerTrackerDelta{
-		Uploaded:   5,
-		Downloaded: 20,
+		Uploaded:   20,
+		Downloaded: 5,
 		IP:         "127.0.0.1",
 		Event:      PEERUPDATE,
 	}
@@ -68,9 +68,15 @@ func TestPeerUpdate(t *testing.T) {
 
 func TestTrackerUpdate(t *testing.T) {
 	expectedReturn := &TrackerStats{
-		Downloaded: 10,
-		Uploaded:   50,
+		Downloaded: 51,
+		Uploaded:   11,
 	}
+
+	newStats := &TrackerStats{
+		Downloaded: 1,
+		Uploaded:   1,
+	}
+	MYSQLSTORE.dbPool.Save(&newStats)
 
 	trackerUpdate := PeerTrackerDelta{
 		Uploaded:   10,
