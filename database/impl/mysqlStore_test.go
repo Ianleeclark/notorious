@@ -45,7 +45,7 @@ func TestPeerUpdate(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	retval := &PeerStats{}
-	MYSQLSTORE.dbPool.First(&retval)
+	MYSQLSTORE.dbPool.Where("ip = ?", peerUpdate.IP).Find(&retval)
 
 	if retval.Downloaded != expectedReturn.Downloaded {
 		t.Fatalf("Expected %v, got %v",
@@ -63,38 +63,5 @@ func TestPeerUpdate(t *testing.T) {
 		t.Fatalf("Expected %v, got %v",
 			expectedReturn.Ip,
 			retval.Ip)
-	}
-}
-
-func TestTrackerUpdate(t *testing.T) {
-	expectedReturn := &TrackerStats{
-		Downloaded: 51,
-		Uploaded:   11,
-	}
-
-	newStats := &TrackerStats{
-		Downloaded: 1,
-		Uploaded:   1,
-	}
-	MYSQLSTORE.dbPool.Save(&newStats)
-
-	trackerUpdate := PeerTrackerDelta{
-		Uploaded:   10,
-		Downloaded: 50,
-		Event:      TRACKERUPDATE,
-	}
-
-	go func() { MYSQLSTORE.UpdateConsumer <- trackerUpdate }()
-	time.Sleep(1 * time.Second)
-
-	retval := &TrackerStats{}
-	MYSQLSTORE.dbPool.First(&retval)
-
-	if retval.Downloaded != expectedReturn.Downloaded {
-		t.Fatalf("Expected %v, got %v -- TestTrackerUpdate()", expectedReturn.Downloaded, retval.Downloaded)
-	}
-
-	if retval.Uploaded != expectedReturn.Uploaded {
-		t.Fatalf("Expected %v, got %v -- TestTrackerUpdate():Upload", expectedReturn.Uploaded, retval.Uploaded)
 	}
 }
