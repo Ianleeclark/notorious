@@ -41,7 +41,7 @@ func TestPeerUpdate(t *testing.T) {
 		Event:      PEERUPDATE,
 	}
 
-	MYSQLSTORE.UpdateConsumer <- peerUpdate
+	go func() { MYSQLSTORE.UpdateConsumer <- peerUpdate }()
 	time.Sleep(1 * time.Second)
 
 	retval := &PeerStats{}
@@ -78,7 +78,7 @@ func TestTrackerUpdate(t *testing.T) {
 		Event:      TRACKERUPDATE,
 	}
 
-	MYSQLSTORE.UpdateConsumer <- trackerUpdate
+	go func() { MYSQLSTORE.UpdateConsumer <- trackerUpdate }()
 	time.Sleep(1 * time.Second)
 
 	retval := &TrackerStats{}
