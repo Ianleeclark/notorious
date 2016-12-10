@@ -1,4 +1,4 @@
-package kvStoreInterface
+package redisPeerStore
 
 import (
 	"bytes"
@@ -23,8 +23,8 @@ func OpenClient() (client *redis.Client) {
 	return
 }
 
-// RedisSetIPMember sets a key as a member of an infohash and sets a timeout.
-func RedisSetIPMember(c *redis.Client, infoHash, ipPort string) (retval int) {
+// SetIPMember sets a key as a member of an infohash and sets a timeout.
+func SetIPMember(c *redis.Client, infoHash, ipPort string) (retval int) {
 	if c == nil {
 		c = OpenClient()
 	}
@@ -46,14 +46,14 @@ func RedisSetIPMember(c *redis.Client, infoHash, ipPort string) (retval int) {
 	return
 }
 
-// RedisSetKeyVal Sets a key to the specified value. Used mostly with adding a
+// SetKeyVal Sets a key to the specified value. Used mostly with adding a
 // peer into an info_hash
-func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
+func SetKeyVal(c *redis.Client, keymember string, value string) {
 	if c == nil {
 		c = OpenClient()
 	}
 
-	// RedisSetKeyVal sets a key:member's value to value. Returns nothing as of
+	// SetKeyVal sets a key:member's value to value. Returns nothing as of
 	// yet.
 	currTime := int64(time.Now().UTC().Unix())
 	currTime += EXPIRETIME
@@ -66,13 +66,13 @@ func RedisSetKeyVal(c *redis.Client, keymember string, value string) {
 	}
 }
 
-// RedisGetKeyVal Lookup a peer in the specified infohash at `key`
-func RedisGetKeyVal(c *redis.Client, key string) []string {
+// GetKeyVal Lookup a peer in the specified infohash at `key`
+func GetKeyVal(c *redis.Client, key string) []string {
 	if c == nil {
 		c = OpenClient()
 	}
 
-	// RedisGetKeyVal retrieves a value from the Redis store by looking up the
+	// GetKeyVal retrieves a value from the  store by looking up the
 	// provided key. If the key does not yet exist, we Create the key in the KV
 	// storage or if the value is empty, we add the current requester to the
 	// list.
@@ -87,8 +87,8 @@ func RedisGetKeyVal(c *redis.Client, key string) []string {
 	return val
 }
 
-// RedisGetAllPeers fetches all peers from the info_hash at `key`
-func RedisGetAllPeers(c *redis.Client, key string) []string {
+// GetAllPeers fetches all peers from the info_hash at `key`
+func GetAllPeers(c *redis.Client, key string) []string {
 	if c == nil {
 		c = OpenClient()
 	}
@@ -117,28 +117,28 @@ func RedisGetAllPeers(c *redis.Client, key string) []string {
 	return val
 }
 
-// RedisGetCount counts all of the peers at `info_hash`
-func RedisGetCount(c *redis.Client, info_hash string, member string) (retval int, err error) {
+// GetCount counts all of the peers at `info_hash`
+func GetCount(c *redis.Client, infoHash string, member string) (retval int, err error) {
 	if c == nil {
 		c = OpenClient()
 	}
 
 	// A generic function which is used to retrieve either the complete count
 	// or the incomplete count for a specified `info_hash`.
-	keymember := concatenateKeyMember(info_hash, member)
+	keymember := concatenateKeyMember(infoHash, member)
 
 	x, err := c.SMembers(keymember).Result()
 	if err != nil {
 		// TODO(ian): Add actual error checking here.
-		err = fmt.Errorf("The info hash %s with member %s doesn't exist", info_hash, member)
+		err = fmt.Errorf("The info hash %s with member %s doesn't exist", infoHash, member)
 	}
 
 	retval = len(x)
 	return
 }
 
-// RedisGetBoolKeyVal Checks if a `key` exists
-func RedisGetBoolKeyVal(c *redis.Client, key string) bool {
+// GetBoolKeyVal Checks if a `key` exists
+func GetBoolKeyVal(c *redis.Client, key string) bool {
 	if c == nil {
 		c = OpenClient()
 	}
@@ -148,23 +148,23 @@ func RedisGetBoolKeyVal(c *redis.Client, key string) bool {
 	return ret
 }
 
-// RedisSetKeyIfNotExists Set a key if it doesn't exist.
-func RedisSetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
+// SetKeyIfNotExists Set a key if it doesn't exist.
+func SetKeyIfNotExists(c *redis.Client, keymember string, value string) (rv bool) {
 	if c == nil {
 		c = OpenClient()
 	}
 
-	rv = RedisGetBoolKeyVal(c, keymember)
+	rv = GetBoolKeyVal(c, keymember)
 	if !rv {
-		RedisSetKeyVal(c, keymember, value)
+		SetKeyVal(c, keymember, value)
 	}
 	return
 }
 
-// RedisRemoveKeysValue Remove a `value` from `key` in the redis kv storage. `key` is typically
+// RemoveKeysValue Remove a `value` from `key` in the redis kv storage. `key` is typically
 // a keymember of info_hash:(in)complete and the value is typically the
 // ip:port concatenated.
-func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
+func RemoveKeysValue(c *redis.Client, key string, value string) {
 	if c == nil {
 		c = OpenClient()
 	}
@@ -174,7 +174,7 @@ func RedisRemoveKeysValue(c *redis.Client, key string, value string) {
 
 // CreateNewTorrentKey Creates a new key. By default, it adds a member
 // ":ip". I don't think this ought to ever be generalized, as I just want
-// Redis to function in one specific way in notorious.
+//  to function in one specific way in notorious.
 func CreateNewTorrentKey(c *redis.Client, key string) {
 	if c == nil {
 		c = OpenClient()

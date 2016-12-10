@@ -2,7 +2,7 @@ package announce
 
 import (
 	"fmt"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,43 +29,47 @@ func (a *AnnounceData) ParseAnnounceData(req *http.Request) (err error) {
 	} else {
 		a.IP = query.Get(req.RemoteAddr)
 	}
+
 	a.PeerID = query.Get("peer_id")
 
 	a.Port, err = GetInt(query, "port")
 	if err != nil {
 		return fmt.Errorf("Failed to get port")
 	}
+
 	a.Downloaded, err = GetInt(query, "downloaded")
 	if err != nil {
-		err = fmt.Errorf("Failed to get downloaded byte count.")
-		return
+		a.Downloaded = 0
 	}
+
 	a.Uploaded, err = GetInt(query, "uploaded")
 	if err != nil {
-		err = fmt.Errorf("Failed to get uploaded byte count.")
-		return
+		a.Uploaded = 0
 	}
+
 	a.Left, err = GetInt(query, "left")
 	if err != nil {
-		err = fmt.Errorf("Failed to get remaining byte count.")
-		return
+		a.Left = 0
 	}
+
 	a.Numwant, err = GetInt(query, "numwant")
 	if err != nil {
 		a.Numwant = 0
 	}
+
 	if x := query.Get("compact"); x != "" {
 		a.Compact, err = strconv.ParseBool(x)
 		if err != nil {
 			a.Compact = false
 		}
 	}
+
 	a.Event = query.Get("event")
 	if a.Event == " " || a.Event == "" {
 		a.Event = "started"
 	}
 
-	a.RequestContext.redisClient = r.OpenClient()
+	a.RequestContext.redisClient = redisPeerStore.OpenClient()
 
 	return
 }
@@ -112,8 +116,8 @@ func (a *AnnounceData) StartedEventHandler() (err error) {
 		ipport = fmt.Sprintf("%s:%d", a.IP, a.Port)
 	}
 
-	r.RedisSetKeyVal(a.RequestContext.redisClient, keymember, ipport)
-	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	redisPeerStore.SetKeyVal(a.RequestContext.redisClient, keymember, ipport)
+	if redisPeerStore.SetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s\n", ipport, keymember)
 	}
 
@@ -148,7 +152,7 @@ func (a *AnnounceData) CompletedEventHandler() {
 	keymember := fmt.Sprintf("%s:complete", a.InfoHash)
 	// TODO(ian): DRY!
 	ipport := fmt.Sprintf("%s:%s", a.IP, a.Port)
-	if r.RedisSetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
+	if redisPeerStore.SetKeyIfNotExists(a.RequestContext.redisClient, keymember, ipport) {
 		fmt.Printf("Adding host %s to %s:complete\n", ipport, a.InfoHash)
 	}
 }
@@ -159,15 +163,15 @@ func (a *AnnounceData) removeFromKVStorage(subkey string) {
 	keymember := fmt.Sprintf("%s:%s", a.InfoHash, subkey)
 
 	fmt.Printf("Removing host %s from %v\n", ipport, keymember)
-	r.RedisRemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
+	redisPeerStore.RemoveKeysValue(a.RequestContext.redisClient, keymember, ipport)
 }
 
 func (a *AnnounceData) infoHashExists() bool {
-	return r.RedisGetBoolKeyVal(nil, a.InfoHash)
+	return redisPeerStore.GetBoolKeyVal(nil, a.InfoHash)
 }
 
 func (a *AnnounceData) createInfoHashKey() {
-	r.CreateNewTorrentKey(nil, a.InfoHash)
+	redisPeerStore.CreateNewTorrentKey(nil, a.InfoHash)
 }
 
 // ParseInfoHash parses the encoded info hash. Such a simple solution for a

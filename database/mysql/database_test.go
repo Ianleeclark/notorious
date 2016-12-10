@@ -1,6 +1,7 @@
-package db
+package mysql
 
 import (
+	. "github.com/GrappigPanda/notorious/database"
 	"os"
 	"testing"
 	"time"
@@ -17,53 +18,53 @@ func TestOpenConn(t *testing.T) {
 }
 
 func TestAddWhitelistedTorrent(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123451234512345",
 		Name:      "Hello Kitty Island Adventure.exe",
-		AddedBy:   "127.0.0.1",
+		AddedBy:   "127.0.0.2",
 		DateAdded: time.Now().Unix(),
 	}
 
-	if !newTorrent.AddWhitelistedTorrent() {
+	if !newTorrent.AddWhitelistedTorrent(DBCONN) {
 		t.Fatalf("Failed to Add a whitelisted torrent")
 	}
 }
 
 func TestGetWhitelistedTorrents(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure3.exe",
-		AddedBy:   "127.0.0.1",
+		AddedBy:   "127.0.0.2",
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent2 := &White_Torrent{
+	newTorrent2 := &WhiteTorrent{
 		InfoHash:  "FFFFFFFFFFFFhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure4.exe",
-		AddedBy:   "127.0.0.1",
+		AddedBy:   "127.0.0.2",
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent()
-	newTorrent2.AddWhitelistedTorrent()
+	newTorrent.AddWhitelistedTorrent(DBCONN)
+	newTorrent2.AddWhitelistedTorrent(DBCONN)
 
-	_, err := GetWhitelistedTorrents()
+	_, err := GetWhitelistedTorrents(DBCONN)
 	if err != nil {
 		t.Fatalf("Failed to get all whitelisted torrents: %v", err)
 	}
 }
 
 func TestGetWhitelistedTorrent(t *testing.T) {
-	newTorrent := &White_Torrent{
+	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrent",
 		Name:      "Hello Kitty Island Adventure2.exe",
-		AddedBy:   "127.0.0.1",
+		AddedBy:   "127.0.0.2",
 		DateAdded: time.Now().Unix(),
 	}
 
-	newTorrent.AddWhitelistedTorrent()
+	newTorrent.AddWhitelistedTorrent(DBCONN)
 
-	retval, err := GetWhitelistedTorrent(newTorrent.InfoHash)
+	retval, err := GetWhitelistedTorrent(nil, newTorrent.InfoHash)
 	if err != nil {
 		t.Fatalf("Failed to GetWhitelistedTorrent: %v", err)
 	}
@@ -86,7 +87,7 @@ func TestUpdateStats(t *testing.T) {
 	}
 	DBCONN.Save(&newStats)
 
-	UpdateStats(20, 5)
+	UpdateStats(nil, 20, 5)
 
 	retval := &TrackerStats{}
 	DBCONN.First(&retval)
@@ -104,24 +105,24 @@ func TestUpdateStats(t *testing.T) {
 }
 
 func TestUpdatePeerStats(t *testing.T) {
-	expectedReturn := &Peer_Stats{
+	expectedReturn := &PeerStats{
 		Downloaded: 6,
 		Uploaded:   21,
-		Ip:         "127.0.0.1",
+		Ip:         "127.0.0.2",
 	}
 
-	newPeer := &Peer_Stats{
+	newPeer := &PeerStats{
 		Downloaded: 1,
 		Uploaded:   1,
-		Ip:         "127.0.0.1",
+		Ip:         "127.0.0.2",
 	}
 
 	DBCONN.Save(&newPeer)
 
-	UpdatePeerStats(20, 5, "127.0.0.1")
+	UpdatePeerStats(nil, 20, 5, "127.0.0.2")
 
-	retval := &Peer_Stats{}
-	DBCONN.First(&retval)
+	retval := &PeerStats{}
+	DBCONN.Where("Ip = ?", "127.0.0.2").Find(&retval)
 
 	if retval.Downloaded != expectedReturn.Downloaded {
 		t.Fatalf("Expected %v, got %v",
@@ -145,9 +146,9 @@ func TestUpdatePeerStats(t *testing.T) {
 func TestMain(m *testing.M) {
 	DBCONN.DropTableIfExists(
 		&TrackerStats{},
-		&Peer_Stats{},
+		&PeerStats{},
 		&Torrent{},
-		&White_Torrent{},
+		&WhiteTorrent{},
 	)
 	os.Exit(m.Run())
 }

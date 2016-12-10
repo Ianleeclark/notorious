@@ -2,8 +2,8 @@ package reaper
 
 import (
 	"fmt"
-	"github.com/GrappigPanda/notorious/database"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
+	"github.com/GrappigPanda/notorious/database/mysql"
+	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"gopkg.in/redis.v3"
 	"strconv"
 	"strings"
@@ -72,7 +72,7 @@ func StartReapingScheduler(waitTime time.Duration) {
 	go func() {
 		for {
 			// Handle any other cleanup or Notorious-related functions
-			c := r.OpenClient()
+			c := redisPeerStore.OpenClient()
 			_, err := c.Ping().Result()
 			if err != nil {
 				panic("No Redis instance detected. If deploying without Docker, install redis-server")
@@ -83,10 +83,10 @@ func StartReapingScheduler(waitTime time.Duration) {
 			addedBy := new(string)
 			dateAdded := new(int64)
 
-			x, err := db.GetWhitelistedTorrents()
+			x, err := mysql.GetWhitelistedTorrents(nil)
 			for x.Next() {
 				x.Scan(infoHash, name, addedBy, dateAdded)
-				r.CreateNewTorrentKey(nil, *infoHash)
+				redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
 			}
 
 			// Start the actual peer reaper.

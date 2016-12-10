@@ -5,8 +5,9 @@ import (
 	a "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database"
-	r "github.com/GrappigPanda/notorious/kvStoreInterfaces"
-	"github.com/GrappigPanda/notorious/server/peerStore"
+	"github.com/GrappigPanda/notorious/database/impl"
+	"github.com/GrappigPanda/notorious/peerStore"
+	"github.com/GrappigPanda/notorious/peerStore/impl"
 	"net/http"
 )
 
@@ -16,6 +17,7 @@ type applicationContext struct {
 	config          config.ConfigStruct
 	trackerLevel    int
 	peerStoreClient peerStore.PeerStore
+	sqlObj          db.SQLStore
 }
 
 type scrapeData struct {
@@ -58,26 +60,26 @@ func (app *applicationContext) worker(data *a.AnnounceData) []string {
 
 	}
 
-	r.CreateNewTorrentKey(nil, data.InfoHash)
+	app.peerStoreClient.CreateNewTorrentKey(data.InfoHash)
 	return app.worker(data)
 }
 
 func (app *applicationContext) handleStatsTracking(data *a.AnnounceData) {
-	db.UpdateStats(data.Uploaded, data.Downloaded)
+	app.sqlObj.UpdateStats(data.Uploaded, data.Downloaded)
 
 	if app.trackerLevel > a.RATIOLESS {
-		db.UpdatePeerStats(data.Uploaded, data.Downloaded, data.IP)
+		app.sqlObj.UpdatePeerStats(data.Uploaded, data.Downloaded, data.IP)
 	}
 
 	if data.Event == "completed" {
-		db.UpdateTorrentStats(1, -1)
+		app.sqlObj.UpdateTorrentStats(1, -1)
 		return
 	} else if data.Left == 0 {
 		// TODO(ian): Don't assume the peer is already in the DB
-		db.UpdateTorrentStats(1, -1)
+		app.sqlObj.UpdateTorrentStats(1, -1)
 		return
 	} else if data.Event == "started" {
-		db.UpdateTorrentStats(0, 1)
+		app.sqlObj.UpdateTorrentStats(0, 1)
 	}
 }
 
@@ -128,19 +130,15 @@ func (app *applicationContext) requestHandler(w http.ResponseWriter, req *http.R
 	app.handleStatsTracking(data)
 }
 
-func scrapeHandler(w http.ResponseWriter, req *http.Request) {
+func (app *applicationContext) scrapeHandler(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	dbConn, err := db.OpenConnection()
-	if err != nil {
-		panic(err)
-	}
 
 	infoHash := query.Get("InfoHash")
 	if infoHash == "" {
 		failMsg := fmt.Sprintf("Tracker does not support multiple entire DB scrapes.")
 		writeErrorResponse(w, failMsg)
 	} else {
-		torrentData := db.ScrapeTorrent(dbConn, infoHash)
+		torrentData := app.sqlObj.ScrapeTorrent(infoHash)
 		writeResponse(w, formatScrapeResponse(torrentData))
 	}
 
@@ -161,12 +159,13 @@ func RunServer() {
 	app := applicationContext{
 		config:          config.LoadConfig(),
 		trackerLevel:    a.RATIOLESS,
-		peerStoreClient: new(peerStore.RedisStore),
+		peerStoreClient: new(redisPeerStoreImpl.RedisStore),
+		sqlObj:          new(sqlStoreImpl.MySQLStore),
 	}
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", app.requestHandler)
-	mux.HandleFunc("/scrape", scrapeHandler)
+	mux.HandleFunc("/scrape", app.scrapeHandler)
 	http.ListenAndServe(":3000", mux)
 }
