@@ -45,8 +45,8 @@ func (m *MySQLStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
 	peerUpdatesChan := make(chan db.PeerTrackerDelta)
 
 	go func() {
-		select {
-		case update := <-peerUpdatesChan:
+		for {
+			update := <-peerUpdatesChan
 			switch update.Event {
 			case db.PEERUPDATE:
 				m.UpdatePeerStats(update.Uploaded, update.Downloaded, update.IP)
