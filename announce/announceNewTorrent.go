@@ -11,7 +11,7 @@ package announce
 type AnnouncerNotifier interface {
 	// SpawnNotifier handles creating a new notifier. The notifier will live by
 	// itself and not need any
-	SpawnNotifier() *AnnounceNotifier
+	SpawnNotifier() *interface{}
 	// KillNotifier will handle cleanup and closing of the notifier. Necessary
 	// for a clean exit for Notorious.
 	KillNotifier() error
