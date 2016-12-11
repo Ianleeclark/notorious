@@ -13,8 +13,7 @@ import (
 // OpenConnection does as its name dictates and opens a connection to the
 // PostgresHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
-	c := config.LoadConfig()
-	return OpenConnectionWithConfig(&c)
+	return OpenConnectionWithConfig(&config.LoadConfig())
 }
 
 // OpenConnectionWithConfig handles `OpenConnection` but allows injecting a
@@ -22,11 +21,10 @@ func OpenConnection() (db *gorm.DB, err error) {
 func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
 	db, err = gorm.Open("postgres", formatConnectString(*cfg))
 	if err != nil {
-		println("cant open db")
-		err = fmt.Errorf("Failed to open connection to PostGres: %v", err)
+		return nil, fmt.Errorf("Failed to open connection to PostGres: %v", err)
 	}
 
-	return
+	return db, nil
 }
 
 // InitDB initializes database tables.
