@@ -56,6 +56,7 @@ type PeerTrackerDelta struct {
 // store stats and retrieve whitelisted torrents.
 type SQLStore interface {
 	OpenConnection() (*gorm.DB, error)
+	OpenConnectionWithConfig(*config.ConfigStruct) (*gorm.DB, error)
 	GetTorrent(string) (*schemas.Torrent, error)
 	GetWhitelistedTorrent(string) (*schemas.WhiteTorrent, error)
 	UpdateStats(uint64, uint64)

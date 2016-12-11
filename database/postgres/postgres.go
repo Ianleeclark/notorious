@@ -23,6 +23,17 @@ func OpenConnection() (db *gorm.DB, err error) {
 	return
 }
 
+// OpenConnectionWithConfig handles `OpenConnection` but allows injecting a
+// config file.
+func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
+	db, err = gorm.Open("postgres", formatConnectString(*cfg))
+	if err != nil {
+		err = fmt.Errorf("Failed to open connection to PostGres: %v", err)
+	}
+
+	return
+}
+
 // InitDB initializes database tables.
 func InitDB(dbConn *gorm.DB) {
 	dbConn = assertOpenConnection(dbConn)

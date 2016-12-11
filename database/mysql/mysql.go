@@ -23,6 +23,17 @@ func OpenConnection() (db *gorm.DB, err error) {
 	return
 }
 
+// OpenConnectionWithConfig does as its name dictates and opens a connection to the
+// MysqlHost listed in the config
+func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
+	db, err = gorm.Open("mysql", formatConnectString(*cfg))
+	if err != nil {
+		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
+	}
+
+	return
+}
+
 // InitDB initializes database tables.
 func InitDB(dbConn *gorm.DB) {
 	dbConn = assertOpenConnection(dbConn)

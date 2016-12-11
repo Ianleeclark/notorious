@@ -1,13 +1,24 @@
 package postgres
 
 import (
+	"github.com/GrappigPanda/notorious/config"
 	. "github.com/GrappigPanda/notorious/database/schemas"
 	"os"
 	"testing"
 	"time"
 )
 
-var DBCONN, _ = OpenConnection()
+var CONFIG = config.ConfigStruct{
+	"postgres",
+	"localhost",
+	"5432",
+	"postgres",
+	"",
+	"testdb",
+	false,
+}
+
+var DBCONN, _ = OpenConnectionWithConfig(&CONFIG)
 
 func TestOpenConn(t *testing.T) {
 	dbConn, err := OpenConnection()
