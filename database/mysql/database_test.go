@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	. "github.com/GrappigPanda/notorious/database"
+	. "github.com/GrappigPanda/notorious/database/schemas"
 	"os"
 	"testing"
 	"time"
