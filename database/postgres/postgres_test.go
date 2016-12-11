@@ -21,7 +21,7 @@ var CONFIG = config.ConfigStruct{
 var DBCONN, _ = OpenConnectionWithConfig(&CONFIG)
 
 func TestOpenConn(t *testing.T) {
-	dbConn, err := OpenConnection()
+	dbConn, err := OpenConnectionWithConfig(&CONFIG)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
