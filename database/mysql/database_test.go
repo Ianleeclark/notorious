@@ -13,7 +13,7 @@ var CONFIG = config.ConfigStruct{
 	"localhost",
 	"3306",
 	"testuser",
-	"",
+	"testuser",
 	"testdb",
 	false,
 }
