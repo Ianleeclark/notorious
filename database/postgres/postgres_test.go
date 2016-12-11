@@ -1,4 +1,4 @@
-package mysql
+package postgres
 
 import (
 	"github.com/GrappigPanda/notorious/config"
@@ -9,26 +9,25 @@ import (
 )
 
 var CONFIG = config.ConfigStruct{
-	"mysql",
+	"postgres",
 	"localhost",
-	"3306",
-	"testuser",
-	"testuser",
+	"5432",
+	"postgres",
+	"postgres",
 	"testdb",
 	false,
 }
 
-var DBCONN, _ = OpenConnectionWithConfig(&CONFIG)
+var DBCONN, ERR = OpenConnectionWithConfig(&CONFIG)
 
-func TestOpenConn(t *testing.T) {
-	dbConn, err := OpenConnection()
-	if err != nil {
-		t.Fatalf("%v", err)
+func TestOpenConnPostgres(t *testing.T) {
+	if ERR != nil {
+		t.Fatalf("Unable to connect %v", ERR)
 	}
-	InitDB(dbConn)
+	InitDB(DBCONN)
 }
 
-func TestAddWhitelistedTorrent(t *testing.T) {
+func TestAddWhitelistedTorrentPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123451234512345",
 		Name:      "Hello Kitty Island Adventure.exe",
@@ -41,7 +40,7 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 	}
 }
 
-func TestGetWhitelistedTorrents(t *testing.T) {
+func TestGetWhitelistedTorrentsPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure3.exe",
@@ -65,7 +64,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 	}
 }
 
-func TestGetWhitelistedTorrent(t *testing.T) {
+func TestGetWhitelistedTorrentPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrent",
 		Name:      "Hello Kitty Island Adventure2.exe",
@@ -75,7 +74,7 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 
 	newTorrent.AddWhitelistedTorrent(DBCONN)
 
-	retval, err := GetWhitelistedTorrent(nil, newTorrent.InfoHash)
+	retval, err := GetWhitelistedTorrent(DBCONN, newTorrent.InfoHash)
 	if err != nil {
 		t.Fatalf("Failed to GetWhitelistedTorrent: %v", err)
 	}
@@ -86,7 +85,7 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 	}
 }
 
-func TestUpdateStats(t *testing.T) {
+func TestUpdateStatsPostgres(t *testing.T) {
 	expectedReturn := &TrackerStats{
 		Downloaded: 6,
 		Uploaded:   21,
@@ -98,7 +97,7 @@ func TestUpdateStats(t *testing.T) {
 	}
 	DBCONN.Save(&newStats)
 
-	UpdateStats(nil, 20, 5)
+	UpdateStats(DBCONN, 20, 5)
 
 	retval := &TrackerStats{}
 	DBCONN.First(&retval)
@@ -115,7 +114,7 @@ func TestUpdateStats(t *testing.T) {
 	}
 }
 
-func TestUpdatePeerStats(t *testing.T) {
+func TestUpdatePeerStatsPostgres(t *testing.T) {
 	expectedReturn := &PeerStats{
 		Downloaded: 6,
 		Uploaded:   21,
@@ -130,7 +129,7 @@ func TestUpdatePeerStats(t *testing.T) {
 
 	DBCONN.Save(&newPeer)
 
-	UpdatePeerStats(nil, 20, 5, "127.0.0.2")
+	UpdatePeerStats(DBCONN, 20, 5, "127.0.0.2")
 
 	retval := &PeerStats{}
 	DBCONN.Where("Ip = ?", "127.0.0.2").Find(&retval)

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/mysql"
+	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -62,17 +63,17 @@ func (m *MySQLStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
 }
 
 // GetTorrent wraps `mysql.GetTorrent`.
-func (m *MySQLStore) GetTorrent(infoHash string) (*db.Torrent, error) {
+func (m *MySQLStore) GetTorrent(infoHash string) (*schemas.Torrent, error) {
 	return mysql.GetTorrent(m.dbPool, infoHash)
 }
 
 // GetWhitelistedTorrent wraps `mysql.GetWhitelistedTorrent`.
-func (m *MySQLStore) GetWhitelistedTorrent(infoHash string) (*db.WhiteTorrent, error) {
+func (m *MySQLStore) GetWhitelistedTorrent(infoHash string) (*schemas.WhiteTorrent, error) {
 	return mysql.GetWhitelistedTorrent(m.dbPool, infoHash)
 }
 
 // ScrapeTorrent wraps `mysql.ScrapeTorrent`.
-func (m *MySQLStore) ScrapeTorrent(infoHash string) *db.Torrent {
+func (m *MySQLStore) ScrapeTorrent(infoHash string) *schemas.Torrent {
 	return mysql.ScrapeTorrent(m.dbPool, infoHash)
 }
 

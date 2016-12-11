@@ -2,16 +2,31 @@ package db
 
 import (
 	"database/sql"
+	"github.com/GrappigPanda/notorious/config"
+	"github.com/GrappigPanda/notorious/database/mysql"
+	"github.com/GrappigPanda/notorious/database/postgres"
+	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// AddWhitelistedTorrent handles adding a new whitelisted torrent into the
-// database.
-func (t *WhiteTorrent) AddWhitelistedTorrent(db *gorm.DB) bool {
-	db.Create(t)
-	return db.NewRecord(t)
+func InitDB(config *config.ConfigStruct) {
+	if (*config).DBChoice == "mysql" {
+		conn, err := mysql.OpenConnection()
+		if err != nil {
+			panic("Unable to open connection to remote server")
+		}
+		mysql.InitDB(conn)
+	} else if (*config).DBChoice == "postgres" {
+		conn, err := postgres.OpenConnection()
+		if err != nil {
+			panic("Unable to open connection to remote server")
+		}
+		postgres.InitDB(conn)
+	} else {
+		panic("Invalid Config choice for DBChoice. Set either `UsePostgres` or `UseMySQL`.")
+	}
 }
 
 // PeerDeltaEvent allows us to set an event to handle how we're going to update
@@ -41,11 +56,11 @@ type PeerTrackerDelta struct {
 // store stats and retrieve whitelisted torrents.
 type SQLStore interface {
 	OpenConnection() (*gorm.DB, error)
-	GetTorrent(string) (*Torrent, error)
-	GetWhitelistedTorrent(string) (*WhiteTorrent, error)
+	GetTorrent(string) (*schemas.Torrent, error)
+	GetWhitelistedTorrent(string) (*schemas.WhiteTorrent, error)
 	UpdateStats(uint64, uint64)
 	UpdateTorrentStats(int64, int64)
-	ScrapeTorrent(string) *Torrent
+	ScrapeTorrent(string) *schemas.Torrent
 	GetWhitelistedTorrents() (*sql.Rows, error)
 	UpdatePeerStats(uint64, uint64, string)
 	HandlePeerUpdates() chan PeerTrackerDelta
