@@ -131,12 +131,11 @@ func ScrapeTorrent(dbConn *gorm.DB, infoHash string) (torrent *schemas.Torrent) 
 // formatConnectStrings concatenates the data from the config file into a
 // usable Postgres connection string.
 func formatConnectString(c config.ConfigStruct) string {
-	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
-		c.DBUser,
-		c.DBPass,
+	return fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s",
 		c.DBHost,
-		c.DBPort,
+		c.DBUser,
 		c.DBName,
+		c.DBPass,
 	)
 }
 

@@ -41,23 +41,7 @@ func (m *PostgresStore) OpenConnection() (*gorm.DB, error) {
 // allows block/asynchronous consumption of peer updates, rather than updating
 // the remote database at the end of every request.
 func (m *PostgresStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
-	peerUpdatesChan := make(chan db.PeerTrackerDelta)
-
-	go func() {
-		for {
-			update := <-peerUpdatesChan
-			switch update.Event {
-			case db.PEERUPDATE:
-				m.UpdatePeerStats(update.Uploaded, update.Downloaded, update.IP)
-			case db.TRACKERUPDATE:
-				m.UpdateStats(update.Uploaded, update.Downloaded)
-			case db.TORRENTUPDATE:
-				m.UpdateTorrentStats(int64(update.Uploaded), int64(update.Downloaded))
-			}
-		}
-	}()
-
-	return peerUpdatesChan
+	return nil
 }
 
 // GetTorrent wraps `mysql.GetTorrent`.
