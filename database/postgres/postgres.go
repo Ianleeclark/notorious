@@ -147,13 +147,13 @@ func formatConnectString(c config.ConfigStruct) string {
 // assertOpenConnection handles asserting a connection passed into a sql
 // function is open, not nil. If nil, we'll create a new connection.
 func assertOpenConnection(db *gorm.DB) *gorm.DB {
-	var err error
-
 	if db == nil {
-		db, err = OpenConnection()
+		db, err := OpenConnection()
 		if err != nil {
-			err = err
+			panic(fmt.Sprintf("Assert open connection failed with : %v", err))
 		}
+
+		return db
 	}
 
 	return db
