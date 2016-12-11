@@ -22,7 +22,7 @@ var DBCONN, ERR = OpenConnectionWithConfig(&CONFIG)
 
 func TestOpenConnPostgres(t *testing.T) {
 	if ERR != nil {
-		t.Fatalf("Unable to connect %v", err)
+		t.Fatalf("Unable to connect %v", ERR)
 	}
 	InitDB(DBCONN)
 }
