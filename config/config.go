@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 	"strconv"
 )
@@ -34,7 +33,7 @@ func LoadConfig() ConfigStruct {
 
 	if viper.GetBool("UseEnvVariables") == true {
 		viper.AutomaticEnv()
-		viper.BindEnv("mysqluser")
+		viper.BindEnv("dbuser")
 	}
 
 	whitelist, err := strconv.ParseBool(viper.Get("whitelist").(string))
@@ -53,7 +52,7 @@ func loadMySQLOptions(whitelist bool) ConfigStruct {
 		sqlDeployOption = "postgres"
 	}
 
-	if viper.Get(fmt.Sprintf("dbpass", sqlDeployOption)).(string) != "" {
+	if viper.Get("dbpass").(string) != "" {
 		return ConfigStruct{
 			sqlDeployOption,
 			viper.Get("dbhost").(string),
