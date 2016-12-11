@@ -74,7 +74,7 @@ func TestGetWhitelistedTorrentPostgres(t *testing.T) {
 
 	newTorrent.AddWhitelistedTorrent(DBCONN)
 
-	retval, err := GetWhitelistedTorrent(nil, newTorrent.InfoHash)
+	retval, err := GetWhitelistedTorrent(DBCONN, newTorrent.InfoHash)
 	if err != nil {
 		t.Fatalf("Failed to GetWhitelistedTorrent: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestUpdateStatsPostgres(t *testing.T) {
 	}
 	DBCONN.Save(&newStats)
 
-	UpdateStats(nil, 20, 5)
+	UpdateStats(DBCONN, 20, 5)
 
 	retval := &TrackerStats{}
 	DBCONN.First(&retval)
@@ -129,7 +129,7 @@ func TestUpdatePeerStatsPostgres(t *testing.T) {
 
 	DBCONN.Save(&newPeer)
 
-	UpdatePeerStats(nil, 20, 5, "127.0.0.2")
+	UpdatePeerStats(DBCONN, 20, 5, "127.0.0.2")
 
 	retval := &PeerStats{}
 	DBCONN.Where("Ip = ?", "127.0.0.2").Find(&retval)
