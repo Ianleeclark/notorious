@@ -14,13 +14,7 @@ import (
 // PostgresHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
-
-	db, err = gorm.Open("postgres", formatConnectString(c))
-	if err != nil {
-		err = fmt.Errorf("Failed to open connection to PostGres: %v", err)
-	}
-
-	return
+	return OpenConnectionWithConfig(&c)
 }
 
 // OpenConnectionWithConfig handles `OpenConnection` but allows injecting a
@@ -28,6 +22,7 @@ func OpenConnection() (db *gorm.DB, err error) {
 func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
 	db, err = gorm.Open("postgres", formatConnectString(*cfg))
 	if err != nil {
+		println("cant open db")
 		err = fmt.Errorf("Failed to open connection to PostGres: %v", err)
 	}
 
