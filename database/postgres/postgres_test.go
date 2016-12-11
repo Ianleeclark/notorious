@@ -20,7 +20,7 @@ var CONFIG = config.ConfigStruct{
 
 var DBCONN, _ = OpenConnectionWithConfig(&CONFIG)
 
-func TestOpenConn(t *testing.T) {
+func TestOpenConnPostgres(t *testing.T) {
 	dbConn, err := OpenConnectionWithConfig(&CONFIG)
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -28,7 +28,7 @@ func TestOpenConn(t *testing.T) {
 	InitDB(dbConn)
 }
 
-func TestAddWhitelistedTorrent(t *testing.T) {
+func TestAddWhitelistedTorrentPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123451234512345",
 		Name:      "Hello Kitty Island Adventure.exe",
@@ -41,7 +41,7 @@ func TestAddWhitelistedTorrent(t *testing.T) {
 	}
 }
 
-func TestGetWhitelistedTorrents(t *testing.T) {
+func TestGetWhitelistedTorrentsPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrents",
 		Name:      "Hello Kitty Island Adventure3.exe",
@@ -65,7 +65,7 @@ func TestGetWhitelistedTorrents(t *testing.T) {
 	}
 }
 
-func TestGetWhitelistedTorrent(t *testing.T) {
+func TestGetWhitelistedTorrentPostgres(t *testing.T) {
 	newTorrent := &WhiteTorrent{
 		InfoHash:  "12345123GetWhitelistedTorrent",
 		Name:      "Hello Kitty Island Adventure2.exe",
@@ -86,7 +86,7 @@ func TestGetWhitelistedTorrent(t *testing.T) {
 	}
 }
 
-func TestUpdateStats(t *testing.T) {
+func TestUpdateStatsPostgres(t *testing.T) {
 	expectedReturn := &TrackerStats{
 		Downloaded: 6,
 		Uploaded:   21,
@@ -115,7 +115,7 @@ func TestUpdateStats(t *testing.T) {
 	}
 }
 
-func TestUpdatePeerStats(t *testing.T) {
+func TestUpdatePeerStatsPostgres(t *testing.T) {
 	expectedReturn := &PeerStats{
 		Downloaded: 6,
 		Uploaded:   21,
