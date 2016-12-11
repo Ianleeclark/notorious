@@ -17,8 +17,7 @@ type ConfigStruct struct {
 	Whitelist bool
 }
 
-// LoadConfig loads the config into the Config Struct and returns the
-// ConfigStruct object. Will load from environmental variables (all caps) if we
+// LoadConfig loads the config into the Config Struct and returns the // ConfigStruct object. Will load from environmental variables (all caps) if we
 // set a flag to true.
 func LoadConfig() ConfigStruct {
 	viper.SetConfigName("config")
@@ -54,24 +53,24 @@ func loadMySQLOptions(whitelist bool) ConfigStruct {
 		sqlDeployOption = "postgres"
 	}
 
-	if viper.Get(fmt.Sprintf("%spass", sqlDeployOption)).(string) != "" {
+	if viper.Get(fmt.Sprintf("dbpass", sqlDeployOption)).(string) != "" {
 		return ConfigStruct{
 			sqlDeployOption,
-			viper.Get(fmt.Sprintf("%shost", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%sport", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%suser", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%spass", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%sdb", sqlDeployOption)).(string),
+			viper.Get("dbhost").(string),
+			viper.Get("dbport").(string),
+			viper.Get("dbuser").(string),
+			viper.Get("dbpass").(string),
+			viper.Get("dbname").(string),
 			whitelist,
 		}
 	} else {
 		return ConfigStruct{
 			sqlDeployOption,
-			viper.Get(fmt.Sprintf("%shost", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%sport", sqlDeployOption)).(string),
-			viper.Get(fmt.Sprintf("%suser", sqlDeployOption)).(string),
+			viper.Get("dbhost").(string),
+			viper.Get("dbport").(string),
+			viper.Get("dbuser").(string),
 			"",
-			viper.Get(fmt.Sprintf("%sdb", sqlDeployOption)).(string),
+			viper.Get("dbname").(string),
 			whitelist,
 		}
 	}
