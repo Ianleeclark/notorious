@@ -1,17 +1,19 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"strconv"
 )
 
 // ConfigStruct holds the values that our config file holds
 type ConfigStruct struct {
-	MySQLHost string
-	MySQLPort string
-	MySQLUser string
-	MySQLPass string
-	MySQLDB   string
+	DBChoice  string
+	DBHost    string
+	DBPort    string
+	DBUser    string
+	DBPass    string
+	DBName    string
 	Whitelist bool
 }
 
@@ -41,24 +43,36 @@ func LoadConfig() ConfigStruct {
 		whitelist = false
 	}
 
-	if viper.Get("MySQLPass").(string) != "" {
+	return loadMySQLOptions(whitelist)
+}
+
+func loadMySQLOptions(whitelist bool) ConfigStruct {
+	var sqlDeployOption string
+	if viper.GetBool("UseMySQL") {
+		sqlDeployOption = "mysql"
+	} else {
+		sqlDeployOption = "postgres"
+	}
+
+	if viper.Get(fmt.Sprintf("%spass", sqlDeployOption)).(string) != "" {
 		return ConfigStruct{
-			viper.Get("mysqlhost").(string),
-			viper.Get("mysqlport").(string),
-			viper.Get("mysqluser").(string),
-			viper.Get("mysqlpass").(string),
-			viper.Get("mysqldb").(string),
+			sqlDeployOption,
+			viper.Get(fmt.Sprintf("%shost", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%sport", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%suser", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%spass", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%sdb", sqlDeployOption)).(string),
 			whitelist,
 		}
 	} else {
 		return ConfigStruct{
-			viper.Get("mysqlhost").(string),
-			viper.Get("mysqlport").(string),
-			viper.Get("mysqluser").(string),
+			sqlDeployOption,
+			viper.Get(fmt.Sprintf("%shost", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%sport", sqlDeployOption)).(string),
+			viper.Get(fmt.Sprintf("%suser", sqlDeployOption)).(string),
 			"",
-			viper.Get("mysqldb").(string),
+			viper.Get(fmt.Sprintf("%sdb", sqlDeployOption)).(string),
 			whitelist,
 		}
 	}
-
 }

@@ -10,39 +10,37 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// MySQLStore represents the mysql implementation of `SQLStore`
-type MySQLStore struct {
-	dbPool         *gorm.DB
-	UpdateConsumer chan db.PeerTrackerDelta
+type PostgresStore struct {
+	dbPool *gorm.DB
+	// NOTE: The `UpdateConsumer` as seen in `mysqlStore.go:PostgresStore is
+	// unnecessary in Postgres, as we will rely on the `pg_notify` feature
+	// implemented in postgres.
 }
 
-// InitMySQLStore Creates a `MySQLStore` object and initiates all necessary
+// InitPostgresStore Creates a `PostgresStore` object and initiates all necessary
 // moving parts like the `HandlePeerUpdates` channel consumer.
-func InitMySQLStore() (store MySQLStore) {
+func InitPostgresStore() (store PostgresStore) {
 	dbConn, err := mysql.OpenConnection()
 	if err != nil {
-		panic("Failed opening a connection to remote MYSQL database.")
+		panic("Failed opening a connection to remote Postgres database.")
 	}
 
-	store = MySQLStore{
+	store = PostgresStore{
 		dbConn,
-		nil,
 	}
-
-	store.UpdateConsumer = store.HandlePeerUpdates()
 
 	return store
 }
 
 // OpenConnection wraps `mysql.OpenConnection`.
-func (m *MySQLStore) OpenConnection() (*gorm.DB, error) {
+func (m *PostgresStore) OpenConnection() (*gorm.DB, error) {
 	return mysql.OpenConnection()
 }
 
 // HandlePeerUpdates handles listening and aggregating peer updates. THis
 // allows block/asynchronous consumption of peer updates, rather than updating
 // the remote database at the end of every request.
-func (m *MySQLStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
+func (m *PostgresStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
 	peerUpdatesChan := make(chan db.PeerTrackerDelta)
 
 	go func() {
@@ -63,40 +61,36 @@ func (m *MySQLStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
 }
 
 // GetTorrent wraps `mysql.GetTorrent`.
-func (m *MySQLStore) GetTorrent(infoHash string) (*schemas.Torrent, error) {
+func (m *PostgresStore) GetTorrent(infoHash string) (*schemas.Torrent, error) {
 	return mysql.GetTorrent(m.dbPool, infoHash)
 }
 
 // GetWhitelistedTorrent wraps `mysql.GetWhitelistedTorrent`.
-func (m *MySQLStore) GetWhitelistedTorrent(infoHash string) (*schemas.WhiteTorrent, error) {
+func (m *PostgresStore) GetWhitelistedTorrent(infoHash string) (*schemas.WhiteTorrent, error) {
 	return mysql.GetWhitelistedTorrent(m.dbPool, infoHash)
 }
 
 // ScrapeTorrent wraps `mysql.ScrapeTorrent`.
-func (m *MySQLStore) ScrapeTorrent(infoHash string) *schemas.Torrent {
+func (m *PostgresStore) ScrapeTorrent(infoHash string) *schemas.Torrent {
 	return mysql.ScrapeTorrent(m.dbPool, infoHash)
 }
 
 // GetWhitelistedTorrents wraps `mysql.GetWhitelistedTorrents`.
-func (m *MySQLStore) GetWhitelistedTorrents() (*sql.Rows, error) {
+func (m *PostgresStore) GetWhitelistedTorrents() (*sql.Rows, error) {
 	return mysql.GetWhitelistedTorrents(m.dbPool)
 }
 
 // UpdatePeerStats wraps `mysql.UpdatePeerStats`.
-func (m *MySQLStore) UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
+func (m *PostgresStore) UpdatePeerStats(uploaded uint64, downloaded uint64, ip string) {
 	mysql.UpdatePeerStats(m.dbPool, uploaded, downloaded, ip)
 }
 
 // UpdateStats wraps `mysql.UpdateStats`.
-func (m *MySQLStore) UpdateStats(uploaded uint64, downloaded uint64) {
-	m.UpdateConsumer <- db.PeerTrackerDelta{
-		Uploaded:   uploaded,
-		Downloaded: downloaded,
-	}
+func (m *PostgresStore) UpdateStats(uploaded uint64, downloaded uint64) {
 	mysql.UpdateStats(m.dbPool, uploaded, downloaded)
 }
 
 // UpdateTorrentStats wraps `mysql.UpdateTorrentStats`.
-func (m *MySQLStore) UpdateTorrentStats(uploaded int64, downloaded int64) {
+func (m *PostgresStore) UpdateTorrentStats(uploaded int64, downloaded int64) {
 	mysql.UpdateTorrentStats(m.dbPool, uploaded, downloaded)
 }

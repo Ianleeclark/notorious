@@ -1,4 +1,4 @@
-package mysql
+package postgres
 
 import (
 	"database/sql"
@@ -7,17 +7,17 @@ import (
 	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // OpenConnection does as its name dictates and opens a connection to the
-// MysqlHost listed in the config
+// PostgresHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
 
-	db, err = gorm.Open("mysql", formatConnectString(c))
+	db, err = gorm.Open("postgres", formatConnectString(c))
 	if err != nil {
-		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
+		err = fmt.Errorf("Failed to open connection to PostGres: %v", err)
 	}
 
 	return
@@ -129,7 +129,7 @@ func ScrapeTorrent(dbConn *gorm.DB, infoHash string) (torrent *schemas.Torrent) 
 }
 
 // formatConnectStrings concatenates the data from the config file into a
-// usable MySQL connection string.
+// usable Postgres connection string.
 func formatConnectString(c config.ConfigStruct) string {
 	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
 		c.DBUser,

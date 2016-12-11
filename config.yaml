@@ -1,8 +1,20 @@
+# MySQL Options. Set `UseMySQL` to `true` if mysql is desired for
+# production/testing/anything.
+UseMySQL: false
 MySQLHost: localhost
 MySQLPort: "3306"
 MySQLUser: testuser
 MySQLPass: testuser 
 MySQLDB: testdb
+# PostGres Options. Set `UsePostgres` to `true` if postgres is desired for
+# production/testing/anything
+UsePostgres: true
+PostgresHost: localhost
+PostgresPort: "3306"
+PostgresUser: testuser
+PostgresPass: testuser 
+PostgresDB: testdb
+# Redis Options
 RedisServer: localhost
 RedisPort: 6379
 # Whitelist indicates that torrent whitelisting is activated. When torrent
