@@ -13,7 +13,8 @@ import (
 // OpenConnection does as its name dictates and opens a connection to the
 // PostgresHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
-	return OpenConnectionWithConfig(&config.LoadConfig())
+	c := config.LoadConfig()
+	return OpenConnectionWithConfig(&c)
 }
 
 // OpenConnectionWithConfig handles `OpenConnection` but allows injecting a
