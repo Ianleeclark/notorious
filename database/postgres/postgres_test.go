@@ -13,7 +13,7 @@ var CONFIG = config.ConfigStruct{
 	"localhost",
 	"5432",
 	"postgres",
-	"",
+	"postgres",
 	"testdb",
 	false,
 }
