@@ -14,13 +14,7 @@ import (
 // MysqlHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
-
-	db, err = gorm.Open("mysql", formatConnectString(c))
-	if err != nil {
-		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
-	}
-
-	return
+	return OpenConnectionWithConfig(&c)
 }
 
 // OpenConnectionWithConfig does as its name dictates and opens a connection to the
@@ -28,10 +22,10 @@ func OpenConnection() (db *gorm.DB, err error) {
 func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
 	db, err = gorm.Open("mysql", formatConnectString(*cfg))
 	if err != nil {
-		err = fmt.Errorf("Failed to open connection to MySQL: %v", err)
+		return nil, fmt.Errorf("Failed to open connection to MySQL: %v", err)
 	}
 
-	return
+	return db, nil
 }
 
 // InitDB initializes database tables.

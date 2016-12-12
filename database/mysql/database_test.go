@@ -18,14 +18,13 @@ var CONFIG = config.ConfigStruct{
 	false,
 }
 
-var DBCONN, _ = OpenConnectionWithConfig(&CONFIG)
+var DBCONN, ERR = OpenConnectionWithConfig(&CONFIG)
 
-func TestOpenConn(t *testing.T) {
-	dbConn, err := OpenConnection()
-	if err != nil {
-		t.Fatalf("%v", err)
+func TestOpenConnPostgres(t *testing.T) {
+	if ERR != nil {
+		t.Fatalf("Unable to connect %v", ERR)
 	}
-	InitDB(dbConn)
+	InitDB(DBCONN)
 }
 
 func TestAddWhitelistedTorrent(t *testing.T) {
