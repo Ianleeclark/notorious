@@ -2,7 +2,6 @@ package sqlStoreImpl
 
 import (
 	"database/sql"
-	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/mysql"
 	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
@@ -13,7 +12,7 @@ import (
 // MySQLStore represents the mysql implementation of `SQLStore`
 type MySQLStore struct {
 	dbPool         *gorm.DB
-	UpdateConsumer chan db.PeerTrackerDelta
+	UpdateConsumer chan PeerTrackerDelta
 }
 
 // InitMySQLStore Creates a `MySQLStore` object and initiates all necessary
@@ -42,18 +41,18 @@ func (m *MySQLStore) OpenConnection() (*gorm.DB, error) {
 // HandlePeerUpdates handles listening and aggregating peer updates. THis
 // allows block/asynchronous consumption of peer updates, rather than updating
 // the remote database at the end of every request.
-func (m *MySQLStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
-	peerUpdatesChan := make(chan db.PeerTrackerDelta)
+func (m *MySQLStore) HandlePeerUpdates() chan PeerTrackerDelta {
+	peerUpdatesChan := make(chan PeerTrackerDelta)
 
 	go func() {
 		for {
 			update := <-peerUpdatesChan
 			switch update.Event {
-			case db.PEERUPDATE:
+			case PEERUPDATE:
 				m.UpdatePeerStats(update.Uploaded, update.Downloaded, update.IP)
-			case db.TRACKERUPDATE:
+			case TRACKERUPDATE:
 				m.UpdateStats(update.Uploaded, update.Downloaded)
-			case db.TORRENTUPDATE:
+			case TORRENTUPDATE:
 				m.UpdateTorrentStats(int64(update.Uploaded), int64(update.Downloaded))
 			}
 		}
@@ -89,7 +88,7 @@ func (m *MySQLStore) UpdatePeerStats(uploaded uint64, downloaded uint64, ip stri
 
 // UpdateStats wraps `mysql.UpdateStats`.
 func (m *MySQLStore) UpdateStats(uploaded uint64, downloaded uint64) {
-	m.UpdateConsumer <- db.PeerTrackerDelta{
+	m.UpdateConsumer <- PeerTrackerDelta{
 		Uploaded:   uploaded,
 		Downloaded: downloaded,
 	}

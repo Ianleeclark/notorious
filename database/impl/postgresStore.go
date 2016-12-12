@@ -2,7 +2,6 @@ package sqlStoreImpl
 
 import (
 	"database/sql"
-	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/postgres"
 	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
@@ -41,18 +40,18 @@ func (m *PostgresStore) OpenConnection() (*gorm.DB, error) {
 // HandlePeerUpdates handles listening and aggregating peer updates. THis
 // allows block/asynchronous consumption of peer updates, rather than updating
 // the remote database at the end of every request.
-func (m *PostgresStore) HandlePeerUpdates() chan db.PeerTrackerDelta {
-	peerUpdatesChan := make(chan db.PeerTrackerDelta)
+func (m *PostgresStore) HandlePeerUpdates() chan PeerTrackerDelta {
+	peerUpdatesChan := make(chan PeerTrackerDelta)
 
 	go func() {
 		for {
 			update := <-peerUpdatesChan
 			switch update.Event {
-			case db.PEERUPDATE:
+			case PEERUPDATE:
 				m.UpdatePeerStats(update.Uploaded, update.Downloaded, update.IP)
-			case db.TRACKERUPDATE:
+			case TRACKERUPDATE:
 				m.UpdateStats(update.Uploaded, update.Downloaded)
-			case db.TORRENTUPDATE:
+			case TORRENTUPDATE:
 				m.UpdateTorrentStats(int64(update.Uploaded), int64(update.Downloaded))
 			}
 		}

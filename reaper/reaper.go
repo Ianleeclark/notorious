@@ -2,9 +2,7 @@ package reaper
 
 import (
 	"fmt"
-	"github.com/GrappigPanda/notorious/config"
-	"github.com/GrappigPanda/notorious/database/mysql"
-	"github.com/GrappigPanda/notorious/database/postgres"
+	"github.com/GrappigPanda/notorious/database/impl"
 	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"gopkg.in/redis.v3"
 	"strconv"
@@ -85,26 +83,13 @@ func StartReapingScheduler(waitTime time.Duration) {
 			addedBy := new(string)
 			dateAdded := new(int64)
 
-			cfg := config.LoadConfig()
-
-			if cfg.DBChoice == "mysql" {
-				whitelistedTorrents, err := mysql.GetWhitelistedTorrents(nil)
-				if err == nil {
-					for whitelistedTorrents.Next() {
-						whitelistedTorrents.Scan(infoHash, name, addedBy, dateAdded)
-						redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
-					}
+			sqlStore := sqlStoreImpl.InitSQLStoreByDBChoice()
+			whitelistedTorrents, err := sqlStore.GetWhitelistedTorrents()
+			if err == nil {
+				for whitelistedTorrents.Next() {
+					whitelistedTorrents.Scan(infoHash, name, addedBy, dateAdded)
+					redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
 				}
-			} else if cfg.DBChoice == "postgres" {
-				whitelistedTorrents, err := postgres.GetWhitelistedTorrents(nil)
-				if err == nil {
-					for whitelistedTorrents.Next() {
-						whitelistedTorrents.Scan(infoHash, name, addedBy, dateAdded)
-						redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
-					}
-				}
-			} else {
-				panic("Invalid DBChoice encountered when starting the peer reaper.")
 			}
 
 			// Start the actual peer reaper.
