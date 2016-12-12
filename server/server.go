@@ -156,11 +156,23 @@ func writeResponse(w http.ResponseWriter, values string) {
 
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
+	// Load the config and initiate a `SQLStore` implementation.
+	var sqlObj db.SQLStore
+	cfg := config.LoadConfig()
+
+	if cfg.DBChoice == "mysql" {
+		sqlObj = new(sqlStoreImpl.MySQLStore)
+	} else if cfg.DBChoice == "postgres" {
+		sqlObj = new(sqlStoreImpl.PostgresStore)
+	} else {
+		panic("Invalid config value for DBChoice. Must be either postgres or MySQL.")
+	}
+
 	app := applicationContext{
-		config:          config.LoadConfig(),
+		config:          cfg,
 		trackerLevel:    a.RATIOLESS,
 		peerStoreClient: new(redisPeerStoreImpl.RedisStore),
-		sqlObj:          new(sqlStoreImpl.MySQLStore),
+		sqlObj:          sqlObj,
 	}
 
 	mux := http.NewServeMux()
