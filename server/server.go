@@ -4,7 +4,6 @@ import (
 	"fmt"
 	a "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/config"
-	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/impl"
 	"github.com/GrappigPanda/notorious/peerStore"
 	"github.com/GrappigPanda/notorious/peerStore/impl"
@@ -17,7 +16,7 @@ type applicationContext struct {
 	config          config.ConfigStruct
 	trackerLevel    int
 	peerStoreClient peerStore.PeerStore
-	sqlObj          db.SQLStore
+	sqlObj          sqlStoreImpl.SQLStore
 }
 
 type scrapeData struct {
@@ -157,19 +156,10 @@ func writeResponse(w http.ResponseWriter, values string) {
 // RunServer spins up the server and muxes the routes.
 func RunServer() {
 	// Load the config and initiate a `SQLStore` implementation.
-	var sqlObj db.SQLStore
-	cfg := config.LoadConfig()
-
-	if cfg.DBChoice == "mysql" {
-		sqlObj = new(sqlStoreImpl.MySQLStore)
-	} else if cfg.DBChoice == "postgres" {
-		sqlObj = new(sqlStoreImpl.PostgresStore)
-	} else {
-		panic("Invalid config value for DBChoice. Must be either postgres or MySQL.")
-	}
+	sqlObj := sqlStoreImpl.InitSQLStoreByDBChoice()
 
 	app := applicationContext{
-		config:          cfg,
+		config:          config.LoadConfig(),
 		trackerLevel:    a.RATIOLESS,
 		peerStoreClient: new(redisPeerStoreImpl.RedisStore),
 		sqlObj:          sqlObj,
