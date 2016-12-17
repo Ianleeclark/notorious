@@ -14,6 +14,7 @@ before_script:
   - mysql -h localhost -u root --password='' < ./build/schema_create.sql
   - psql -c "create database testdb;" -U postgres
   - psql -c "ALTER USER postgres PASSWORD 'postgres';" -U postgres
+    psql -U postgres < build/postgres_schema.sql
   - go get ./...
   - go get gopkg.in/redis.v3
   - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi

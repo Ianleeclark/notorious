@@ -1,3 +1,11 @@
+CREATE TABLE white_torrents
+(
+    info_hash TEXT,
+    name TEXT NOT NULL,
+    added_by TEXT,
+    date_added BIGINT
+);
+
 CREATE OR REPLACE FUNCTION new_torrent_added() RETURNS TRIGGER AS $$
 BEGIN
   PERFORM pg_notify(
