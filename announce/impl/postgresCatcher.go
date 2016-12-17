@@ -16,7 +16,7 @@ func (p *PostgresCatcher) serveNewTorrent(*pq.Notification) {
 }
 
 func (p *PostgresCatcher) HandleNewTorrent() {
-	p.pglisten.BeginListen(p.serveNewTorrent)
+	go p.pglisten.BeginListen(p.serveNewTorrent)
 }
 
 func NewCatcher(cfg config.ConfigStruct) *PostgresCatcher {

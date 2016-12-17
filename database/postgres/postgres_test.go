@@ -1,27 +1,15 @@
 package postgres
 
 import (
-	"github.com/GrappigPanda/notorious/config"
 	. "github.com/GrappigPanda/notorious/database/schemas"
-	"os"
 	"testing"
 	"time"
 )
 
-var CONFIG = config.ConfigStruct{
-	"postgres",
-	"localhost",
-	"5432",
-	"postgres",
-	"",
-	"testdb",
-	false,
-}
-
-var DBCONN, ERR = OpenConnectionWithConfig(&CONFIG)
+var DBCONN, ERR2 = OpenConnectionWithConfig(&CONFIG)
 
 func TestOpenConnPostgres(t *testing.T) {
-	if ERR != nil {
+	if ERR2 != nil {
 		t.Fatalf("Unable to connect %v", ERR)
 	}
 	InitDB(DBCONN)
@@ -151,14 +139,4 @@ func TestUpdatePeerStatsPostgres(t *testing.T) {
 			expectedReturn.Ip,
 			retval.Ip)
 	}
-}
-
-func TestMain(m *testing.M) {
-	DBCONN.DropTableIfExists(
-		&TrackerStats{},
-		&PeerStats{},
-		&Torrent{},
-		&WhiteTorrent{},
-	)
-	os.Exit(m.Run())
 }

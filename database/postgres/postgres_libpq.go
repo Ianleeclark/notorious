@@ -19,11 +19,7 @@ type PGListener struct {
 	listener   *pq.Listener
 	connstring string
 	conn       *sql.DB
-}
-
-type newTorrentInfo struct {
-	InfoHash string
-	Name     string
+	killListen chan bool
 }
 
 func openLibPQConnection(connstring string) (*sql.DB, error) {
@@ -51,10 +47,13 @@ func NewListener(c config.ConfigStruct) (*PGListener, error) {
 		return nil, fmt.Errorf("Error opening a listen handle: %v", err.Error())
 	}
 
+	killListen := make(chan bool)
+
 	listenObj := PGListener{
 		listener:   listener,
 		connstring: connstring,
 		conn:       conn,
+		killListen: killListen,
 	}
 
 	return &listenObj, nil
@@ -63,6 +62,8 @@ func NewListener(c config.ConfigStruct) (*PGListener, error) {
 // DO we want a callback or something else?
 func (pg *PGListener) BeginListen(callback callbackFunction) {
 	select {
+	case <-pg.killListen:
+		return
 	case notification := <-pg.listener.Notify:
 		callback(notification)
 	}
