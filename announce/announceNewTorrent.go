@@ -7,7 +7,7 @@ package announce
 // torrent to disparate services (think IRC, websockets, RSS feed).
 
 // AnnouncerNotifier handles declaring the API for notifying different channels
-// of nwe torrent additions.
+// of new torrent additions.
 type AnnouncerNotifier interface {
 	// SpawnNotifier handles creating a new notifier. The notifier will live by
 	// itself and not need any
@@ -18,4 +18,15 @@ type AnnouncerNotifier interface {
 	// sendNotification Ought to be private, as `SpawnNotifier` spins up a
 	// goroutine to handle sendNotifications.
 	sendNotification()
+}
+
+type NewTorrentCatcher interface {
+	// serveNewTorrent() Uses an implementation of `AnnouncerNotifier` and
+	// serves new torrents to any listening implementations.
+	serveNewTorrent()
+	// HandleNewTorrent catches new torrents being added and then calls the
+	// `serviceNewTorrent` function. HandleNewTorrent ought to be able to `go
+	// catcherImpl.HandleNewTorrent()` and not be worried about ever again.
+	HandleNewTorrent()
+	NewCatcher() *interface{}
 }
