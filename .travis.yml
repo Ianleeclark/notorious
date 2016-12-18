@@ -6,6 +6,9 @@ services:
   - mysql
   - postgres
 
+addons:
+  postgresql: "9.4"
+
 go:
   - 1.5
   - 1.6
