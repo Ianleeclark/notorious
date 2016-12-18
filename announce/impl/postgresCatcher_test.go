@@ -13,6 +13,7 @@ var CONFIG = config.ConfigStruct{
 	"",
 	"testdb",
 	false,
+	nil,
 }
 
 func TestNewCatcher(t *testing.T) {
