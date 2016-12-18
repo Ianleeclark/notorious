@@ -1,4 +1,4 @@
-package mysql
+package postgres
 
 import (
 	"database/sql"
@@ -7,22 +7,22 @@ import (
 	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/jinzhu/gorm"
 	// We use a blank import here because I'm afraid of breaking anything
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 // OpenConnection does as its name dictates and opens a connection to the
-// MysqlHost listed in the config
+// PostgresHost listed in the config
 func OpenConnection() (db *gorm.DB, err error) {
 	c := config.LoadConfig()
 	return OpenConnectionWithConfig(&c)
 }
 
-// OpenConnectionWithConfig does as its name dictates and opens a connection to the
-// MysqlHost listed in the config
+// OpenConnectionWithConfig handles `OpenConnection` but allows injecting a
+// config file.
 func OpenConnectionWithConfig(cfg *config.ConfigStruct) (db *gorm.DB, err error) {
-	db, err = gorm.Open("mysql", formatConnectString(*cfg))
+	db, err = gorm.Open("postgres", formatConnectString(*cfg))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open connection to MySQL: %v", err)
+		return nil, fmt.Errorf("Failed to open connection to PostGres: %v", err)
 	}
 
 	return db, nil
@@ -134,27 +134,26 @@ func ScrapeTorrent(dbConn *gorm.DB, infoHash string) (torrent *schemas.Torrent) 
 }
 
 // formatConnectStrings concatenates the data from the config file into a
-// usable MySQL connection string.
+// usable Postgres connection string.
 func formatConnectString(c config.ConfigStruct) string {
-	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
-		c.DBUser,
-		c.DBPass,
+	return fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s",
 		c.DBHost,
-		c.DBPort,
+		c.DBUser,
 		c.DBName,
+		c.DBPass,
 	)
 }
 
 // assertOpenConnection handles asserting a connection passed into a sql
 // function is open, not nil. If nil, we'll create a new connection.
 func assertOpenConnection(db *gorm.DB) *gorm.DB {
-	var err error
-
 	if db == nil {
-		db, err = OpenConnection()
+		db, err := OpenConnection()
 		if err != nil {
-			err = err
+			panic(fmt.Sprintf("Assert open connection failed with : %v", err))
 		}
+
+		return db
 	}
 
 	return db

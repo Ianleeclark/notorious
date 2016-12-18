@@ -2,7 +2,7 @@ package reaper
 
 import (
 	"fmt"
-	"github.com/GrappigPanda/notorious/database/mysql"
+	"github.com/GrappigPanda/notorious/database/impl"
 	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"gopkg.in/redis.v3"
 	"strconv"
@@ -83,10 +83,13 @@ func StartReapingScheduler(waitTime time.Duration) {
 			addedBy := new(string)
 			dateAdded := new(int64)
 
-			x, err := mysql.GetWhitelistedTorrents(nil)
-			for x.Next() {
-				x.Scan(infoHash, name, addedBy, dateAdded)
-				redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
+			sqlStore := sqlStoreImpl.InitSQLStoreByDBChoice()
+			whitelistedTorrents, err := sqlStore.GetWhitelistedTorrents()
+			if err == nil {
+				for whitelistedTorrents.Next() {
+					whitelistedTorrents.Scan(infoHash, name, addedBy, dateAdded)
+					redisPeerStore.CreateNewTorrentKey(nil, *infoHash)
+				}
 			}
 
 			// Start the actual peer reaper.

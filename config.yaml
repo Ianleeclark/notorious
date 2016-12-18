@@ -1,8 +1,15 @@
-MySQLHost: localhost
-MySQLPort: "3306"
-MySQLUser: testuser
-MySQLPass: testuser 
-MySQLDB: testdb
+# MySQL Options. Set `UseMySQL` to `true` if mysql is desired for
+# production/testing/anything.
+# PostGres Options. Set `UsePostgres` to `true` if postgres is desired for
+# production/testing/anything
+UsePostgres: true
+UseMySQL: false
+DBHost: localhost
+DBPort: "3306"
+DBUser: testuser
+DBPass: testuser
+DBName: testdb
+# Redis Options
 RedisServer: localhost
 RedisPort: 6379
 # Whitelist indicates that torrent whitelisting is activated. When torrent
@@ -12,3 +19,15 @@ whitelist: "false"
 # UseEnvVariables allows environmental variables to be used instead of
 # expliclitly defined config variables.
 UseEnvVariables: true
+# UseIRCNotify enables announcing new torrents over IRC.
+UseIRCNotify: true
+IRCNick: "test12765"
+IRCPass: "test12765"
+IRCServer: "chat.freenode.net"
+IRCPort: 6667
+IRCChan: "#12765"
+# UseRSSNotify enables announcing new torrents over an RSS feed.
+# If enabled, the RSS feed will be served from
+# `http://<hostname>:<serverPort>/rss/`
+UseRSSNotify: true
+

@@ -3,11 +3,12 @@ package server
 import (
 	"fmt"
 	a "github.com/GrappigPanda/notorious/announce"
+	"github.com/GrappigPanda/notorious/announce/impl/rss"
 	"github.com/GrappigPanda/notorious/config"
-	"github.com/GrappigPanda/notorious/database"
 	"github.com/GrappigPanda/notorious/database/impl"
 	"github.com/GrappigPanda/notorious/peerStore"
 	"github.com/GrappigPanda/notorious/peerStore/impl"
+	"log"
 	"net/http"
 )
 
@@ -17,7 +18,8 @@ type applicationContext struct {
 	config          config.ConfigStruct
 	trackerLevel    int
 	peerStoreClient peerStore.PeerStore
-	sqlObj          db.SQLStore
+	sqlObj          sqlStoreImpl.SQLStore
+	rssNotifier     *rss.RSSNotifier
 }
 
 type scrapeData struct {
@@ -145,6 +147,13 @@ func (app *applicationContext) scrapeHandler(w http.ResponseWriter, req *http.Re
 	return
 }
 
+func (app *applicationContext) rssHandle(w http.ResponseWriter, req *http.Request) {
+	rssData, err := app.rssNotifier.GetRSS()
+	if err == nil {
+		writeResponse(w, rssData)
+	}
+}
+
 func writeErrorResponse(w http.ResponseWriter, failMsg string) {
 	writeResponse(w, createFailureMessage(failMsg))
 }
@@ -155,17 +164,26 @@ func writeResponse(w http.ResponseWriter, values string) {
 }
 
 // RunServer spins up the server and muxes the routes.
-func RunServer() {
+func RunServer(rssNotifier *rss.RSSNotifier) {
+	// Load the config and initiate a `SQLStore` implementation.
+	sqlObj := sqlStoreImpl.InitSQLStoreByDBChoice()
+	cfg := config.LoadConfig()
+
 	app := applicationContext{
-		config:          config.LoadConfig(),
+		config:          cfg,
 		trackerLevel:    a.RATIOLESS,
 		peerStoreClient: new(redisPeerStoreImpl.RedisStore),
-		sqlObj:          new(sqlStoreImpl.MySQLStore),
+		sqlObj:          sqlObj,
+		rssNotifier:     rssNotifier,
 	}
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/announce", app.requestHandler)
 	mux.HandleFunc("/scrape", app.scrapeHandler)
+	if cfg.UseRSS == true {
+		log.Println("Starting RSS handler at http://localhost/rss/")
+		mux.HandleFunc("/rss/", app.rssHandle)
+	}
 	http.ListenAndServe(":3000", mux)
 }

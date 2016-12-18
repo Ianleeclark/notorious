@@ -5,7 +5,7 @@ import (
 	"fmt"
 	. "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/bencode"
-	"github.com/GrappigPanda/notorious/database"
+	"github.com/GrappigPanda/notorious/database/schemas"
 	"github.com/GrappigPanda/notorious/peerStore/redis"
 	"net"
 	"strconv"
@@ -87,7 +87,7 @@ func EncodeResponse(ipport []string, data *AnnounceData) (resp string) {
 	return fmt.Sprintf("d%se", ret)
 }
 
-func formatScrapeResponse(torrent *db.Torrent) string {
+func formatScrapeResponse(torrent *schemas.Torrent) string {
 	subdir := fmt.Sprintf("d%s%s%s%s%s%se",
 		bencode.EncodeByteString("complete"),
 		bencode.EncodeInt(int(torrent.Seeders)),
