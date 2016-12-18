@@ -8,13 +8,15 @@ import (
 )
 
 type PostgresCatcher struct {
-	pglisten   *postgres.PGListener
-	config     config.ConfigStruct
-	ircNotifer IRCNotifier
+	pglisten    *postgres.PGListener
+	config      config.ConfigStruct
+	ircNotifier *IRCNotifier
 }
 
 func (p *PostgresCatcher) serveNewTorrent(notify *pq.Notification) {
-	p.ircNotifer.newTorrentChan <- deserializeNotification(notify)
+	if p.ircNotifier != nil {
+		p.ircNotifier.newTorrentChan <- deserializeNotification(notify)
+	}
 }
 
 func (p *PostgresCatcher) HandleNewTorrent() {
@@ -27,10 +29,17 @@ func NewPostgresCatcher(cfg config.ConfigStruct) *PostgresCatcher {
 		panic(err)
 	}
 
+	var ircNotifier *IRCNotifier
+	if cfg.IRCCfg != nil {
+		ircNotifier = SpawnNotifier(cfg)
+	} else {
+		ircNotifier = nil
+	}
+
 	return &PostgresCatcher{
-		pglisten:   pglisten,
-		config:     cfg,
-		ircNotifer: *SpawnNotifier(cfg),
+		pglisten:    pglisten,
+		config:      cfg,
+		ircNotifier: ircNotifier,
 	}
 }
 
