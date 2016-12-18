@@ -65,8 +65,6 @@ func (pg *PGListener) BeginListen(callback callbackFunction) {
 	case <-pg.killListen:
 		return
 	case notification := <-pg.listener.Notify:
-		println("calling callback")
 		callback(notification)
-		println("callback called")
 	}
 }

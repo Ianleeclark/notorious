@@ -15,6 +15,7 @@ type ConfigStruct struct {
 	DBName    string
 	Whitelist bool
 	IRCCfg    *IRCConfig
+	UseRSS    bool
 }
 
 type IRCConfig struct {
@@ -70,6 +71,13 @@ func loadSQLOptions(whitelist bool) ConfigStruct {
 		ircCfg = nil
 	}
 
+	var useRSS bool
+	if viper.GetBool("UseRSSNotify") {
+		useRSS = true
+	} else {
+		useRSS = false
+	}
+
 	if viper.Get("dbpass").(string) != "" {
 		return ConfigStruct{
 			sqlDeployOption,
@@ -80,6 +88,7 @@ func loadSQLOptions(whitelist bool) ConfigStruct {
 			viper.Get("dbname").(string),
 			whitelist,
 			ircCfg,
+			useRSS,
 		}
 	} else {
 		return ConfigStruct{
@@ -91,6 +100,7 @@ func loadSQLOptions(whitelist bool) ConfigStruct {
 			viper.Get("dbname").(string),
 			whitelist,
 			ircCfg,
+			useRSS,
 		}
 	}
 }

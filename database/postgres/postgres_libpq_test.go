@@ -18,6 +18,7 @@ var CONFIG = config.ConfigStruct{
 	"testdb",
 	false,
 	nil,
+	false,
 }
 
 var LISTENER, ERR = NewListener(CONFIG)

@@ -14,13 +14,12 @@ func init() {
 	config := config.LoadConfig()
 	db.InitDB(&config)
 	go reaper.StartReapingScheduler(1 * time.Minute)
-
-	if config.IRCCfg != nil {
-		postgresCatcher := catcherImpl.NewPostgresCatcher(config)
-		postgresCatcher.HandleNewTorrent()
-	}
 }
 
 func main() {
-	server.RunServer()
+	config := config.LoadConfig()
+
+	postgresCatcher := catcherImpl.NewPostgresCatcher(config)
+	postgresCatcher.HandleNewTorrent()
+	server.RunServer(postgresCatcher.GetRSSNotifier())
 }

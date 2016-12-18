@@ -18,6 +18,9 @@ type AnnouncerNotifier interface {
 	// sendNotification Ought to be private, as `SpawnNotifier` spins up a
 	// goroutine to handle sendNotifications.
 	sendNotification()
+	// notifyCatcher operates upon the `newTorrentChan` and the `killChan` and
+	// sends notifications whenever new notifications are ran.
+	notifyCatcher()
 }
 
 type NewTorrentCatcher interface {

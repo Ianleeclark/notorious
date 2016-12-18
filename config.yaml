@@ -26,3 +26,8 @@ IRCPass: "test12765"
 IRCServer: "chat.freenode.net"
 IRCPort: 6667
 IRCChan: "#12765"
+# UseRSSNotify enables announcing new torrents over an RSS feed.
+# If enabled, the RSS feed will be served from
+# `http://<hostname>:<serverPort>/rss/`
+UseRSSNotify: true
+

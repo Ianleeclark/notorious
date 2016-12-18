@@ -14,6 +14,7 @@ var CONFIG = config.ConfigStruct{
 	"testdb",
 	false,
 	nil,
+	false,
 }
 
 func TestNewCatcher(t *testing.T) {
