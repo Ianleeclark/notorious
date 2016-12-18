@@ -154,11 +154,12 @@ func TestUpdatePeerStats(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	DBCONN.DropTableIfExists(
-		&TrackerStats{},
+	dbConn, _ := OpenConnectionWithConfig(&CONFIG)
+	dbConn.DropTableIfExists(
 		&PeerStats{},
 		&Torrent{},
-		&WhiteTorrent{},
+		&TrackerStats{},
 	)
+	InitDB(dbConn)
 	os.Exit(m.Run())
 }
