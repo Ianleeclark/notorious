@@ -1,10 +1,10 @@
--- CREATE TABLE white_torrents
--- (
-    -- info_hash TEXT,
-    -- name TEXT NOT NULL,
-    -- added_by TEXT,
-    -- date_added BIGINT
--- );
+CREATE TABLE white_torrents
+(
+    info_hash TEXT,
+    name TEXT NOT NULL,
+    added_by TEXT,
+    date_added BIGINT
+);
 
 CREATE OR REPLACE FUNCTION new_torrent_added() RETURNS TRIGGER AS $$
 BEGIN
@@ -24,9 +24,3 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS new_torrent_added ON white_torrents;
 CREATE TRIGGER new_torrent_added BEFORE INSERT ON white_torrents FOR EACH ROW EXECUTE PROCEDURE new_torrent_added();
-
-DO language plpgsql $$
-BEGIN
-    RAISE NOTICE 'Executed succesfully!';
-END
-$$;
