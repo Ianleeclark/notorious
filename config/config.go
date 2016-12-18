@@ -14,6 +14,17 @@ type ConfigStruct struct {
 	DBPass    string
 	DBName    string
 	Whitelist bool
+	IRCCfg    *IRCConfig
+}
+
+type IRCConfig struct {
+	Nick   string
+	Pass   string
+	User   string
+	Name   string
+	Server string
+	Port   int
+	Chan   string
 }
 
 // LoadConfig loads the config into the Config Struct and returns the // ConfigStruct object. Will load from environmental variables (all caps) if we
@@ -41,15 +52,22 @@ func LoadConfig() ConfigStruct {
 		whitelist = false
 	}
 
-	return loadMySQLOptions(whitelist)
+	return loadSQLOptions(whitelist)
 }
 
-func loadMySQLOptions(whitelist bool) ConfigStruct {
+func loadSQLOptions(whitelist bool) ConfigStruct {
 	var sqlDeployOption string
 	if viper.GetBool("UseMySQL") {
 		sqlDeployOption = "mysql"
 	} else {
 		sqlDeployOption = "postgres"
+	}
+
+	var ircCfg *IRCConfig
+	if viper.GetBool("UseIRCNotify") {
+		ircCfg = loadIRCOptions()
+	} else {
+		ircCfg = nil
 	}
 
 	if viper.Get("dbpass").(string) != "" {
@@ -61,6 +79,7 @@ func loadMySQLOptions(whitelist bool) ConfigStruct {
 			viper.Get("dbpass").(string),
 			viper.Get("dbname").(string),
 			whitelist,
+			ircCfg,
 		}
 	} else {
 		return ConfigStruct{
@@ -71,6 +90,19 @@ func loadMySQLOptions(whitelist bool) ConfigStruct {
 			"",
 			viper.Get("dbname").(string),
 			whitelist,
+			ircCfg,
 		}
+	}
+}
+
+func loadIRCOptions() *IRCConfig {
+	return &IRCConfig{
+		Nick:   viper.Get("ircnick").(string),
+		Pass:   viper.Get("ircpass").(string),
+		User:   viper.Get("ircnick").(string),
+		Name:   viper.Get("ircnick").(string),
+		Server: viper.Get("ircserver").(string),
+		Port:   viper.GetInt("ircport"),
+		Chan:   viper.Get("ircchan").(string),
 	}
 }

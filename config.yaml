@@ -6,8 +6,8 @@ UsePostgres: true
 UseMySQL: false
 DBHost: localhost
 DBPort: "3306"
-DBUser: testuser
-DBPass: testuser
+DBUser: postgres
+DBPass: postgres
 DBName: testdb
 # Redis Options
 RedisServer: localhost
@@ -19,3 +19,10 @@ whitelist: "false"
 # UseEnvVariables allows environmental variables to be used instead of
 # expliclitly defined config variables.
 UseEnvVariables: true
+# UseIRCNotify enables announcing new torrents over IRC.
+UseIRCNotify: true
+IRCNick: "test12765"
+IRCPass: "test12765"
+IRCServer: "chat.freenode.net"
+IRCPort: 6667
+IRCChan: "#12765"
