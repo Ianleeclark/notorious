@@ -16,10 +16,10 @@ var CONFIG = config.ConfigStruct{
 }
 
 func TestNewCatcher(t *testing.T) {
-	_ = NewCatcher(CONFIG)
+	_ = NewPostgresCatcher(CONFIG)
 }
 
 func TestHandleTorrent(t *testing.T) {
-	catcher := NewCatcher(CONFIG)
+	catcher := NewPostgresCatcher(CONFIG)
 	catcher.HandleNewTorrent()
 }

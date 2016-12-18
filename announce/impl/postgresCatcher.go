@@ -19,7 +19,7 @@ func (p *PostgresCatcher) HandleNewTorrent() {
 	go p.pglisten.BeginListen(p.serveNewTorrent)
 }
 
-func NewCatcher(cfg config.ConfigStruct) *PostgresCatcher {
+func NewPostgresCatcher(cfg config.ConfigStruct) *PostgresCatcher {
 	pglisten, err := postgres.NewListener(cfg)
 	if err != nil {
 		panic(err)
