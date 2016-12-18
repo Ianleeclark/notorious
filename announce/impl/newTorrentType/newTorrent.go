@@ -1,6 +1,6 @@
-package catcherImpl
+package dataType
 
-type newTorrent struct {
+type NewTorrent struct {
 	Name     string `json:"name"`
 	InfoHash string `json:"infoHash"`
 }

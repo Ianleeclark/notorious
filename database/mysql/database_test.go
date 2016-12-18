@@ -17,6 +17,7 @@ var CONFIG = config.ConfigStruct{
 	"testdb",
 	false,
 	nil,
+	false,
 }
 
 var DBCONN, ERR = OpenConnectionWithConfig(&CONFIG)

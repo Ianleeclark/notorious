@@ -1,7 +1,8 @@
-package catcherImpl
+package irc
 
 import (
 	"fmt"
+	"github.com/GrappigPanda/notorious/announce/impl/newTorrentType"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/belak/irc"
 	"log"
@@ -11,19 +12,19 @@ import (
 type IRCNotifier struct {
 	killChan       chan bool
 	client         *irc.Client
-	newTorrentChan chan newTorrent
+	NewTorrentChan chan dataType.NewTorrent
 	config         config.ConfigStruct
 }
 
 func SpawnNotifier(cfg config.ConfigStruct) *IRCNotifier {
 	killChan := make(chan bool)
-	newTorrentChan := make(chan newTorrent)
+	NewTorrentChan := make(chan dataType.NewTorrent)
 	client := createIRCHandler(cfg)
 
 	ircNotify := &IRCNotifier{
 		killChan:       killChan,
 		client:         client,
-		newTorrentChan: newTorrentChan,
+		NewTorrentChan: NewTorrentChan,
 		config:         cfg,
 	}
 
@@ -42,17 +43,17 @@ func (irc *IRCNotifier) notifyCatcher() {
 	case <-irc.killChan:
 		log.Println("Received kill notification in IRCNotifer")
 		return
-	case newTorrent := <-irc.newTorrentChan:
+	case newTorrent := <-irc.NewTorrentChan:
 		log.Println("New Torrent added.")
 		irc.sendNotification(newTorrent)
 	}
 }
 
-func (irc *IRCNotifier) sendNotification(torrent newTorrent) {
+func (irc *IRCNotifier) sendNotification(torrent dataType.NewTorrent) {
 	irc.client.Write(fmt.Sprintf("PRIVMSG %s %s\r\n", (*irc.config.IRCCfg).Chan, formatIRCMessage(torrent)))
 }
 
-func formatIRCMessage(torrent newTorrent) string {
+func formatIRCMessage(torrent dataType.NewTorrent) string {
 	return fmt.Sprintf(
 		"New_torrent_added._Name:_%s_InfoHash:_%s",
 		torrent.Name,
