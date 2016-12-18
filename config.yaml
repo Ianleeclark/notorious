@@ -6,8 +6,8 @@ UsePostgres: true
 UseMySQL: false
 DBHost: localhost
 DBPort: "3306"
-DBUser: postgres
-DBPass: postgres
+DBUser: testuser
+DBPass: testuser
 DBName: testdb
 # Redis Options
 RedisServer: localhost
