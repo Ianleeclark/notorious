@@ -1,0 +1,32 @@
+package websocket
+
+import (
+	"github.com/gorilla/websocket"
+	"net/http"
+)
+
+type WebsocketNotifier struct {
+	killChan       chan bool
+	connections    *conn
+	NewTorrentChan chan dataType.NewTorrent
+	config         config.ConfigStruct
+}
+
+func NewWebsocketNotifier()
+
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Origin") != "http://"+r.Host {
+		http.Error(w, "Origin not allowed", 403)
+		return
+	}
+
+	// TODO(ian): Do we need a read buffer here?
+	conn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
+	if err != nil {
+		http.Error(w, "Could not open websocket connection.", http.StatusBadRequest)
+	}
+}
+
+func announceNewTorrent() {
+
+}

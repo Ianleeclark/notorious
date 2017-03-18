@@ -19,7 +19,7 @@ type IRCNotifier struct {
 func SpawnNotifier(cfg config.ConfigStruct) *IRCNotifier {
 	killChan := make(chan bool)
 	NewTorrentChan := make(chan dataType.NewTorrent)
-	client := createIRCHandler(cfg)
+	c
 
 	ircNotify := &IRCNotifier{
 		killChan:       killChan,
