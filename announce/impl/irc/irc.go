@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/GrappigPanda/notorious/announce/impl/newTorrentType"
 	"github.com/GrappigPanda/notorious/config"
-	"github.com/belak/irc"
+	"gopkg.in/irc.v1"
 	"log"
 	"net"
 )
@@ -19,7 +19,7 @@ type IRCNotifier struct {
 func SpawnNotifier(cfg config.ConfigStruct) *IRCNotifier {
 	killChan := make(chan bool)
 	NewTorrentChan := make(chan dataType.NewTorrent)
-	c
+	client := createIRCHandler(cfg)
 
 	ircNotify := &IRCNotifier{
 		killChan:       killChan,

@@ -5,6 +5,7 @@ import (
 	"github.com/GrappigPanda/notorious/announce/impl/irc"
 	"github.com/GrappigPanda/notorious/announce/impl/newTorrentType"
 	"github.com/GrappigPanda/notorious/announce/impl/rss"
+	"github.com/GrappigPanda/notorious/announce/impl/websocket"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database/postgres"
 	"github.com/lib/pq"
@@ -15,6 +16,7 @@ type PostgresCatcher struct {
 	config      config.ConfigStruct
 	ircNotifier *irc.IRCNotifier
 	rssNotifier *rss.RSSNotifier
+	wsNotifier  *ws.WSNotifier
 }
 
 func (p *PostgresCatcher) serveNewTorrent(notify *pq.Notification) {
@@ -37,6 +39,10 @@ func (p *PostgresCatcher) GetRSSNotifier() *rss.RSSNotifier {
 	return p.rssNotifier
 }
 
+func (p *PostgresCatcher) GetWSNotifier() *ws.WSNotifier {
+	return p.wsNotifier
+}
+
 func NewPostgresCatcher(cfg config.ConfigStruct) *PostgresCatcher {
 	pglisten, err := postgres.NewListener(cfg)
 	if err != nil {
@@ -48,6 +54,13 @@ func NewPostgresCatcher(cfg config.ConfigStruct) *PostgresCatcher {
 		ircNotifier = irc.SpawnNotifier(cfg)
 	} else {
 		ircNotifier = nil
+	}
+
+	var wsNotifier *ws.WSNotifier
+	if cfg.UseWS == true {
+		wsNotifier = ws.SpawnNotifier(cfg)
+	} else {
+		wsNotifier = nil
 	}
 
 	var rssNotifier *rss.RSSNotifier
@@ -62,6 +75,7 @@ func NewPostgresCatcher(cfg config.ConfigStruct) *PostgresCatcher {
 		config:      cfg,
 		ircNotifier: ircNotifier,
 		rssNotifier: rssNotifier,
+		wsNotifier:  wsNotifier,
 	}
 }
 

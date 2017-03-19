@@ -4,11 +4,11 @@
 # production/testing/anything
 UsePostgres: true
 UseMySQL: false
-DBHost: localhost
+DBHost: "postgres-8f3ade58.e69bc91c.svc.dockerapp.io"
 DBPort: "3306"
-DBUser: testuser
-DBPass: testuser
-DBName: testdb
+DBUser: trump2016
+DBPass: yourhonorforstartersfucktrump
+DBName: test
 # Redis Options
 RedisServer: localhost
 RedisPort: 6379
@@ -30,4 +30,5 @@ IRCChan: "#12765"
 # If enabled, the RSS feed will be served from
 # `http://<hostname>:<serverPort>/rss/`
 UseRSSNotify: true
-
+# UseWSNotify enables announcing new torrents over a WS feed. 
+UseWSNotify: true

@@ -21,5 +21,5 @@ func main() {
 
 	postgresCatcher := catcherImpl.NewPostgresCatcher(config)
 	postgresCatcher.HandleNewTorrent()
-	server.RunServer(postgresCatcher.GetRSSNotifier())
+	server.RunServer(postgresCatcher.GetRSSNotifier(), postgresCatcher.GetWSNotifier())
 }

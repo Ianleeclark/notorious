@@ -4,10 +4,12 @@ import (
 	"fmt"
 	a "github.com/GrappigPanda/notorious/announce"
 	"github.com/GrappigPanda/notorious/announce/impl/rss"
+	"github.com/GrappigPanda/notorious/announce/impl/websocket"
 	"github.com/GrappigPanda/notorious/config"
 	"github.com/GrappigPanda/notorious/database/impl"
 	"github.com/GrappigPanda/notorious/peerStore"
 	"github.com/GrappigPanda/notorious/peerStore/impl"
+	"github.com/trevex/golem"
 	"log"
 	"net/http"
 )
@@ -164,7 +166,7 @@ func writeResponse(w http.ResponseWriter, values string) {
 }
 
 // RunServer spins up the server and muxes the routes.
-func RunServer(rssNotifier *rss.RSSNotifier) {
+func RunServer(rssNotifier *rss.RSSNotifier, wsNotifier *ws.WSNotifier) {
 	// Load the config and initiate a `SQLStore` implementation.
 	sqlObj := sqlStoreImpl.InitSQLStoreByDBChoice()
 	cfg := config.LoadConfig()
@@ -184,6 +186,14 @@ func RunServer(rssNotifier *rss.RSSNotifier) {
 	if cfg.UseRSS == true {
 		log.Println("Starting RSS handler at http://localhost/rss/")
 		mux.HandleFunc("/rss/", app.rssHandle)
+	}
+
+	if cfg.UseWS == true {
+		golemRouter := golem.NewRouter()
+		golemRouter.On("join", wsNotifier.Join)
+
+		log.Printf("Starting Websockets server at http://localhost/ws/")
+		mux.HandleFunc("/ws/", wsNotifier.WSHandler)
 	}
 	http.ListenAndServe(":3000", mux)
 }
