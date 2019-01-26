@@ -31,6 +31,7 @@ RUN go get github.com/go-sql-driver/mysql
 RUN go get github.com/spf13/viper
 
 # Build notorious
+RUN go get github.com/GrappigPanda/notorious
 RUN go install github.com/GrappigPanda/notorious
 
 # Set the entry command
